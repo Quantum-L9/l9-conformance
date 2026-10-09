@@ -1,0 +1,25 @@
+schema: l9-conformance/fixture@1
+id: l9.fixture/semantic-subsystem-requires-core@1
+kind: normative_fixture
+conformance_class: core
+governing_refs:
+  - l9.dependency-archetype/semantic-subsystem@1
+  - l9.dependency-archetypes/global@1
+  - l9.conformance-model/global@1
+  - l9.contract/conformance-resolution@1
+source_law:
+  repository: Quantum-L9/.github
+  path: semantics/dependency_archetypes.yaml
+  blob: b0e4125d80c30dae38e0d6b8a36b2d394f6aa79a
+  statement: >
+    l9.dependency-archetype/semantic-subsystem@1 requires conformance class core.
+observable:
+  archetype_id: l9.dependency-archetype/semantic-subsystem@1
+  required_conformance_classes:
+    - core
+expected:
+  conformance_class_present: core
+rules:
+  - fixture_traces_to_existing_global_law
+  - fixture_does_not_create_law
+  - expected_result_is_not_owned_by_l9_graphiti_memory

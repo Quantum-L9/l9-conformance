@@ -1,0 +1,22 @@
+schema: l9-conformance/fixture-profile@1
+id: l9.fixture-profile/core@1
+status: published
+lifecycle_stage: resolvable
+conformance_class: core
+scope:
+  product_kind: dependency
+  archetype_ref: l9.dependency-archetype/semantic-subsystem@1
+owner: l9-conformance
+membership:
+  - l9.fixture/semantic-subsystem-requires-core@1
+governing_refs:
+  - l9.dependency-archetypes/global@1
+  - l9.conformance-model/global@1
+  - l9.contract/conformance-resolution@1
+publication:
+  canonical_identity: l9.fixture-profile/core@1
+  immutable_prior_versions: true
+does_not_own:
+  - global_constitutional_law
+  - memory_product_semantics
+  - memory_release_admission

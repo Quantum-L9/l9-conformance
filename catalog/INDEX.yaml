@@ -1,0 +1,16 @@
+schema: l9-conformance/profile-catalog@1
+owner: l9-conformance
+profiles:
+  - id: l9.fixture-profile/core@1
+    status: published
+    lifecycle_stage: resolvable
+    conformance_class: core
+    path: catalog/fixture-profile-core-1.yaml
+    digest: sha256:3d2cb01a2b872215a3e2298b4e3b3d7ae99ecf867d6486f5730a3f98aba2bb2f
+    membership:
+      - id: l9.fixture/semantic-subsystem-requires-core@1
+        path: catalog/fixtures/semantic-subsystem-requires-core.yaml
+        digest: sha256:17146b0bf953145ad66e93c3f404eaebbfc2b3fb652ce874b4dbc5a5dcb388bb
+does_not_own:
+  - global_constitutional_law
+  - memory_release_admission
