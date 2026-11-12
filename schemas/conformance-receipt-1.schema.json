@@ -91,6 +91,7 @@
           "additionalProperties": false,
           "required": [
             "source_revision",
+            "source_revision_basis",
             "bound_source_digest"
           ],
           "properties": {
@@ -99,6 +100,10 @@
             },
             "bound_source_digest": {
               "$ref": "#/$defs/digest"
+            },
+            "source_revision_basis": {
+              "const": "caller_supplied",
+              "description": "No compiler or conformance input attests the product source revision; it is recorded as supplied by the caller. Bound source identity is bound_source_digest."
             }
           }
         }

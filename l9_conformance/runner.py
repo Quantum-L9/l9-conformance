@@ -369,6 +369,7 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
             },
             "implementation": {
                 "source_revision": request.source_revision,
+                "source_revision_basis": "caller_supplied",
                 "bound_source_digest": verified.bound_source_digest,
             },
         },

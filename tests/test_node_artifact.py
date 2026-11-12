@@ -279,3 +279,12 @@ def test_unknown_manifest_schema_refused(make_closure: Build) -> None:
     manifest.write_text("schema: something-else@1\nfiles: []\n", encoding="utf-8")
     with pytest.raises(RunnerRefusal, match="not supported"):
         run(closure.request())
+
+
+def test_source_revision_recorded_as_caller_supplied(
+    compiler_closure: Callable[..., tuple[Closure, Any]],
+) -> None:
+    closure, overrides = compiler_closure()
+    receipt = run(closure.request(**overrides, bound_source_digest=None))
+    implementation = receipt["exact_subject_ref"]["implementation"]
+    assert implementation["source_revision_basis"] == "caller_supplied"
