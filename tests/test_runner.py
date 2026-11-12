@@ -278,7 +278,9 @@ def _cli_args(closure: Closure, out: Path, **overrides: str) -> list[str]:
 def test_cli_exit_codes(make_closure: Build, tmp_path: Path) -> None:
     import json
 
-    from run_conformance import main  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
+    from run_conformance import (
+        main,  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
+    )
 
     closure = make_closure([replay("ob/a", "test_pass")])
     out = tmp_path / "receipt.json"
