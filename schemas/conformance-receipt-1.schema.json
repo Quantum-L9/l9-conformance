@@ -191,6 +191,41 @@
           "items": {
             "$ref": "#/$defs/refDigest"
           }
+        },
+        "harness": {
+          "description": "Conformance-harness code executed by the run (coordinator ruling D5). Every file under the declared harness root is bound by raw sha256; the harness never ships in the node artifact.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_revision",
+            "source_revision_basis",
+            "root",
+            "driver_ref",
+            "digest",
+            "files"
+          ],
+          "properties": {
+            "source_revision": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "source_revision_basis": {
+              "const": "caller_supplied"
+            },
+            "root": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$"
+            },
+            "driver_ref": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "files": {
+              "$ref": "#/$defs/fileDigests"
+            }
+          }
         }
       }
     },

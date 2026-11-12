@@ -35,7 +35,7 @@ from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError
 from defusedxml.ElementTree import parse as parse_xml
 
-from l9_conformance import RUNNER_ID, RUNNER_VERSION, ir, node_artifact
+from l9_conformance import RUNNER_ID, RUNNER_VERSION, harness, ir, node_artifact
 from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_file
 from l9_conformance.receipt import (
     AUTHORITY,
@@ -84,6 +84,7 @@ class RunRequest:
     python_executable: str = sys.executable
     catalog_index: Path = CATALOG_INDEX
     reproduction: str = "python3 scripts/run_conformance.py <bound inputs>"
+    harness: harness.HarnessRequest | None = None
 
 
 @dataclass(frozen=True)
@@ -101,6 +102,7 @@ class _Verified:
     artifact: node_artifact.NodeArtifact
     bound_source_digest: str
     unpublished_profiles: tuple[str, ...]
+    harness: harness.HarnessBinding | None = None
 
 
 def _rel_files(root: Path) -> set[str]:
@@ -243,11 +245,18 @@ def verify_inputs(request: RunRequest) -> _Verified:
             f"bound source digest mismatch: supplied {request.bound_source_digest}, "
             f"derived {bound_source}"
         )
+    harness_binding: harness.HarnessBinding | None = None
+    if request.harness is not None:
+        try:
+            harness_binding = harness.bind(request.harness)
+        except harness.HarnessRefused as exc:
+            raise RunnerRefusal(str(exc)) from exc
     return _Verified(
         conformance_ir=conformance_ir,
         artifact=artifact,
         bound_source_digest=bound_source,
         unpublished_profiles=tuple(unpublished),
+        harness=harness_binding,
     )
 
 
@@ -290,7 +299,11 @@ def _interpreter(executable: str) -> str:
 
 
 def run_case(
-    case: ir.Case, run_req: RunRequest, artifact_bind: node_artifact.NodeArtifact, work_root: Path
+    case: ir.Case,
+    run_req: RunRequest,
+    artifact_bind: node_artifact.NodeArtifact,
+    work_root: Path,
+    harness_bind: harness.HarnessBinding | None = None,
 ) -> CaseOutcome:
     """Execute one case in a fresh temp dir and a fresh interpreter process."""
     case_dir = Path(tempfile.mkdtemp(prefix="case-", dir=work_root))
@@ -299,13 +312,23 @@ def run_case(
         suite = case_dir / "suite"
         shutil.copytree(run_req.artifact_dir, artifact)
         shutil.copytree(run_req.suite_dir, suite)
+        python_path = node_artifact.python_path(artifact_bind, artifact)
+        if harness_bind is not None and run_req.harness is not None:
+            harness_parent = case_dir / "harness"
+            harness_copy = harness_parent / harness_bind.package
+            shutil.copytree(run_req.harness.root_dir, harness_copy)
+            if harness.copy_digest(harness_bind, harness_copy) != harness_bind.digest:
+                return CaseOutcome(
+                    case.case_id, "error", "harness bytes changed after binding", None, None
+                )
+            python_path = os.pathsep.join([python_path, str(harness_parent)])
         ini = case_dir / "pytest.ini"
         ini.write_text("[pytest]\n", encoding="utf-8")
         junit = case_dir / "junit.xml"
         env = {
             "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
             "HOME": str(case_dir),
-            "PYTHONPATH": node_artifact.python_path(artifact_bind, artifact),
+            "PYTHONPATH": python_path,
             "PYTHONHASHSEED": "0",
             "PYTHONDONTWRITEBYTECODE": "1",
             # Only built-in pytest plugins: no entry-point plugin from the host
@@ -313,6 +336,8 @@ def run_case(
             "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
             "L9_NODE_ARTIFACT_DIR": str(artifact),
         }
+        if harness_bind is not None:
+            env["L9_HARNESS_DRIVER"] = harness_bind.driver_ref
         interpreter = _interpreter(run_req.python_executable)
         cmd: Sequence[str] = (
             interpreter,
@@ -388,7 +413,9 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
                 )
             else:
                 for case in obligation.cases:
-                    outcome = run_case(case, request, verified.artifact, work_root)
+                    outcome = run_case(
+                        case, request, verified.artifact, work_root, verified.harness
+                    )
                     case_entry: dict[str, Any] = {
                         "case_id": outcome.case_id,
                         "verdict": outcome.verdict,
@@ -455,6 +482,11 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
             "fixture_ir": {"ref": cir.fixture_ir.ref, "digest": cir.fixture_ir.digest},
             "rendered_suite": {"digest": file_set_digest(suite_files), "files": suite_files},
             "profiles": [{"ref": p.ref, "digest": p.digest} for p in cir.profiles],
+            **(
+                {"harness": harness.coordinates(verified.harness)}
+                if verified.harness is not None
+                else {}
+            ),
         },
         "observation_or_outcome": {
             "obligations": obligations_out,

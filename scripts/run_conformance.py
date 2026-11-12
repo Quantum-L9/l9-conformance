@@ -15,6 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from l9_conformance.harness import HarnessRequest
 from l9_conformance.runner import RunnerRefusal, RunRequest, run
 
 
@@ -35,7 +36,25 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--harness-dir", type=Path, default=None, help="local harness root dir")
+    parser.add_argument("--harness-root", default=None, help="declared repo-relative root")
+    parser.add_argument("--harness-revision", default=None, help="harness source revision")
+    parser.add_argument("--harness-driver", default=None, help="package.module:callable")
     args = parser.parse_args(argv)
+    harness_args = (args.harness_dir, args.harness_root, args.harness_revision, args.harness_driver)
+    if any(a is not None for a in harness_args) and not all(a is not None for a in harness_args):
+        print("REFUSED: --harness-* options must be given together", file=sys.stderr)
+        return 2
+    harness = (
+        HarnessRequest(
+            root_dir=args.harness_dir,
+            root=args.harness_root,
+            source_revision=args.harness_revision,
+            driver_ref=args.harness_driver,
+        )
+        if args.harness_dir is not None
+        else None
+    )
     request = RunRequest(
         ir_path=args.ir,
         ir_digest=args.ir_digest,
@@ -47,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         source_revision=args.source_revision,
         bound_source_digest=args.bound_source_digest,
         timeout_seconds=args.timeout,
+        harness=harness,
         reproduction="python3 scripts/run_conformance.py "
         + shlex.join(argv if argv is not None else sys.argv[1:]),
     )
