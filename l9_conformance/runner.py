@@ -35,8 +35,8 @@ from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError
 from defusedxml.ElementTree import parse as parse_xml
 
-from l9_conformance import RUNNER_ID, RUNNER_VERSION, harness, ir, node_artifact
-from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_file
+from l9_conformance import RUNNER_ID, RUNNER_VERSION, harness, ir, ir_v1, node_artifact
+from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_canonical, sha256_file
 from l9_conformance.receipt import (
     AUTHORITY,
     CLAIM,
@@ -85,6 +85,11 @@ class RunRequest:
     catalog_index: Path = CATALOG_INDEX
     reproduction: str = "python3 scripts/run_conformance.py <bound inputs>"
     harness: harness.HarnessRequest | None = None
+    # l9.conformance-ir/v1 only: the digest-bound suite binding and the IR's expected
+    # semantic digest (canonical JSON), both required for a v1 IR.
+    suite_binding_path: Path | None = None
+    suite_binding_digest: str | None = None
+    ir_semantic_digest: str | None = None
 
 
 @dataclass(frozen=True)
@@ -103,6 +108,8 @@ class _Verified:
     bound_source_digest: str
     unpublished_profiles: tuple[str, ...]
     harness: harness.HarnessBinding | None = None
+    profiles: tuple[ir.RefDigest, ...] = ()
+    fixture_raw_digest: str = ""
 
 
 def _rel_files(root: Path) -> set[str]:
@@ -176,14 +183,17 @@ def verify_inputs(request: RunRequest) -> _Verified:
             f"conformance IR digest mismatch: bound {request.ir_digest}, "
             f"actual {sha256_bytes(ir_bytes)}"
         )
-    try:
-        conformance_ir = ir.load(ir_bytes)
-    except ir.IRInvalid as exc:
-        raise RunnerRefusal(f"conformance IR invalid: {exc}") from exc
+    conformance_ir = _load_ir(request, ir_bytes)
 
     if not request.fixture_ir_path.is_file():
         raise RunnerRefusal(f"fixture IR {request.fixture_ir_path} is missing")
-    fixture_digest = sha256_file(request.fixture_ir_path)
+    fixture_raw = sha256_file(request.fixture_ir_path)
+    fixture_digest = fixture_raw
+    if conformance_ir.fixture_digest_kind == "semantic":
+        try:
+            fixture_digest = sha256_canonical(yaml.safe_load(request.fixture_ir_path.read_bytes()))
+        except yaml.YAMLError as exc:
+            raise RunnerRefusal(f"fixture IR unparseable: {exc}") from exc
     if fixture_digest != conformance_ir.fixture_ir.digest:
         raise RunnerRefusal(
             f"fixture IR digest mismatch: bound {conformance_ir.fixture_ir.digest}, "
@@ -192,12 +202,16 @@ def verify_inputs(request: RunRequest) -> _Verified:
 
     catalog = _load_catalog(request.catalog_index)
     unpublished: list[str] = []
+    resolved_profiles: list[ir.RefDigest] = []
     for profile in conformance_ir.profiles:
         if profile.ref not in catalog:
             raise RunnerRefusal(
                 f"profile {profile.ref} does not resolve in the l9-conformance catalog"
             )
         catalog_digest, catalog_status, profile_path = catalog[profile.ref]
+        if profile.digest == ir_v1.PROFILE_DIGEST_FROM_CATALOG:
+            # A v1 profile ref carries no digest: bind the catalog's, then the file bytes.
+            profile = ir.RefDigest(ref=profile.ref, digest=catalog_digest)
         if catalog_digest != profile.digest:
             raise RunnerRefusal(
                 f"profile {profile.ref} digest mismatch: bound {profile.digest}, "
@@ -214,6 +228,7 @@ def verify_inputs(request: RunRequest) -> _Verified:
             )
         if catalog_status != "published":
             unpublished.append(profile.ref)
+        resolved_profiles.append(profile)
 
     suite_paths = {f.path for f in conformance_ir.suite_files}
     _check_exact_tree(
@@ -257,7 +272,43 @@ def verify_inputs(request: RunRequest) -> _Verified:
         bound_source_digest=bound_source,
         unpublished_profiles=tuple(unpublished),
         harness=harness_binding,
+        profiles=tuple(resolved_profiles),
+        fixture_raw_digest=fixture_raw,
     )
+
+
+def _load_ir(request: RunRequest, ir_bytes: bytes) -> ir.ConformanceIR:
+    try:
+        document = yaml.safe_load(ir_bytes)
+    except yaml.YAMLError as exc:
+        raise RunnerRefusal(f"conformance IR invalid: unparseable: {exc}") from exc
+    schema = (
+        cast(Mapping[str, Any], document).get("schema") if isinstance(document, Mapping) else None
+    )
+    try:
+        if schema != ir_v1.SCHEMA:
+            return ir.load(ir_bytes)
+        if request.suite_binding_path is None or request.suite_binding_digest is None:
+            raise RunnerRefusal("a v1 conformance IR requires a digest-bound suite binding")
+        if request.ir_semantic_digest is None:
+            raise RunnerRefusal("a v1 conformance IR requires its expected semantic digest")
+        if not request.suite_binding_path.is_file():
+            raise RunnerRefusal(f"suite binding {request.suite_binding_path} is missing")
+        binding_bytes = request.suite_binding_path.read_bytes()
+        if sha256_bytes(binding_bytes) != request.suite_binding_digest:
+            raise RunnerRefusal(
+                f"suite binding digest mismatch: bound {request.suite_binding_digest}, "
+                f"actual {sha256_bytes(binding_bytes)}"
+            )
+        loaded = ir_v1.load(ir_bytes, ir_v1.load_suite_binding(binding_bytes))
+    except ir.IRInvalid as exc:
+        raise RunnerRefusal(f"conformance IR invalid: {exc}") from exc
+    if loaded.semantic_digest != request.ir_semantic_digest:
+        raise RunnerRefusal(
+            f"conformance IR semantic digest mismatch: bound {request.ir_semantic_digest}, "
+            f"actual {loaded.semantic_digest}"
+        )
+    return loaded
 
 
 def _classify_junit(junit: Path, exit_code: int) -> tuple[Verdict, str]:
@@ -405,8 +456,11 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
         for obligation in cir.obligations:
             cases_out: list[dict[str, Any]] = []
             reason: str | None = None
-            if obligation.verification_class != "fixture_replay":
+            if obligation.disposition == "unresolved":
                 verdict: Verdict = "unresolved"
+                reason = f"IR disposition unresolved ({obligation.unresolved_reason})"
+            elif obligation.verification_class != "fixture_replay":
+                verdict = "unresolved"
                 reason = (
                     f"verification class {obligation.verification_class} is not executed by this "
                     "runner and no external evidence is bound"
@@ -479,9 +533,9 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
                 {"ref": s.ref, "digest": s.digest} for s in cir.semantic_sources
             ],
             "conformance_ir": {"ref": cir.ir_ref, "digest": request.ir_digest},
-            "fixture_ir": {"ref": cir.fixture_ir.ref, "digest": cir.fixture_ir.digest},
+            "fixture_ir": {"ref": cir.fixture_ir.ref, "digest": verified.fixture_raw_digest},
             "rendered_suite": {"digest": file_set_digest(suite_files), "files": suite_files},
-            "profiles": [{"ref": p.ref, "digest": p.digest} for p in cir.profiles],
+            "profiles": [{"ref": p.ref, "digest": p.digest} for p in verified.profiles],
             **(
                 {"harness": harness.coordinates(verified.harness)}
                 if verified.harness is not None
