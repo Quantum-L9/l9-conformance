@@ -391,3 +391,56 @@ def test_host_pytest_plugins_not_autoloaded(make_closure: Build) -> None:
     closure.ir_doc["obligations"] = [replay("ob/plug", "test_autoload_off")]
     receipt = run(closure.request())
     assert _verdicts(receipt) == {"ob/plug": "pass"}
+
+
+@pytest.mark.parametrize("bad_path", ["../x.yaml", "/etc/hostname", "SHA256SUMS", "outside/x.yaml"])
+def test_catalog_entry_path_must_stay_in_catalog(
+    make_closure: Build, tmp_path: Path, bad_path: str
+) -> None:
+    """An INDEX entry cannot point the hashed profile bytes outside the catalog."""
+    import shutil
+
+    import yaml as _yaml
+
+    root = Path(__file__).resolve().parents[1]
+    repo = tmp_path / "repo-copy"
+    shutil.copytree(root / "catalog", repo / "catalog")
+    shutil.copy(root / "SHA256SUMS", repo / "SHA256SUMS")
+    (repo / "outside").mkdir()
+    (tmp_path / "x.yaml").write_text("x: 1\n", encoding="utf-8")
+    (repo / "outside" / "x.yaml").write_text("x: 1\n", encoding="utf-8")
+    index = repo / "catalog" / "INDEX.yaml"
+    doc = _yaml.safe_load(index.read_text(encoding="utf-8"))
+    doc["profiles"][0]["path"] = bad_path
+    index.write_text(_yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+    closure = make_closure([replay("ob/a", "test_pass")])
+    closure.ir_doc["profiles"] = [
+        {"ref": doc["profiles"][0]["id"], "digest": doc["profiles"][0]["digest"]}
+    ]
+    with pytest.raises(RunnerRefusal, match=r"not contained|resolves outside"):
+        run(closure.request(catalog_index=index))
+
+
+def test_catalog_symlinked_parent_refused(make_closure: Build, tmp_path: Path) -> None:
+    """A catalog subdirectory symlinked outside the catalog is refused (resolve + contain)."""
+    import shutil
+
+    import yaml as _yaml
+
+    root = Path(__file__).resolve().parents[1]
+    repo = tmp_path / "repo-copy"
+    shutil.copytree(root / "catalog", repo / "catalog")
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    shutil.copy(root / "catalog" / "fixture-profile-core-1.yaml", elsewhere / "p.yaml")
+    (repo / "catalog" / "linked").symlink_to(elsewhere, target_is_directory=True)
+    index = repo / "catalog" / "INDEX.yaml"
+    doc = _yaml.safe_load(index.read_text(encoding="utf-8"))
+    doc["profiles"][0]["path"] = "catalog/linked/p.yaml"
+    index.write_text(_yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+    closure = make_closure([replay("ob/a", "test_pass")])
+    closure.ir_doc["profiles"] = [
+        {"ref": doc["profiles"][0]["id"], "digest": doc["profiles"][0]["digest"]}
+    ]
+    with pytest.raises(RunnerRefusal, match="resolves outside"):
+        run(closure.request(catalog_index=index))

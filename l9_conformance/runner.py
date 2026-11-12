@@ -134,11 +134,33 @@ def _load_catalog(index: Path) -> dict[str, tuple[str, str, Path]]:
     """Profile id -> (catalog digest, catalog status, profile file path)."""
     data = cast(Mapping[str, Any], yaml.safe_load(index.read_text(encoding="utf-8")))
     profiles = cast(list[Mapping[str, Any]], data.get("profiles") or [])
-    root = index.resolve().parents[1]
     return {
-        str(p["id"]): (str(p["digest"]), str(p.get("status", "")), root / str(p["path"]))
+        str(p["id"]): (str(p["digest"]), str(p.get("status", "")), _profile_path(index, p))
         for p in profiles
     }
+
+
+def _profile_path(index: Path, entry: Mapping[str, Any]) -> Path:
+    """Resolve a catalog entry path, refusing anything outside the catalog directory.
+
+    The path is relative to the repository root (the INDEX's parent's parent). An
+    absolute path, a ``..`` component, or a path that resolves (following symlinked
+    parents) outside the catalog directory is refused, so the hashed "profile bytes"
+    can only come from the catalog itself.
+    """
+    raw = entry.get("path")
+    if not isinstance(raw, str) or not raw:
+        raise RunnerRefusal(f"catalog entry {entry.get('id')!r} has no path")
+    rel = Path(raw)
+    if rel.is_absolute() or ".." in rel.parts:
+        raise RunnerRefusal(f"catalog entry {entry.get('id')!r} path {raw!r} is not contained")
+    catalog_dir = index.resolve().parent
+    resolved = (index.resolve().parents[1] / rel).resolve()
+    if not resolved.is_relative_to(catalog_dir):
+        raise RunnerRefusal(
+            f"catalog entry {entry.get('id')!r} path {raw!r} resolves outside {catalog_dir}"
+        )
+    return resolved
 
 
 def verify_inputs(request: RunRequest) -> _Verified:
