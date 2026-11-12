@@ -26,14 +26,14 @@ import sys
 import tempfile
 import xml.etree.ElementTree as ET
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Final, cast
 
 import yaml
 
-from l9_conformance import RUNNER_ID, RUNNER_VERSION, ir
+from l9_conformance import RUNNER_ID, RUNNER_VERSION, ir, node_artifact
 from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_file
 from l9_conformance.receipt import (
     AUTHORITY,
@@ -74,7 +74,7 @@ class RunRequest:
     artifact_manifest_path: Path
     artifact_manifest_digest: str
     source_revision: str
-    bound_source_digest: str
+    bound_source_digest: str | None = None
     timeout_seconds: float = 120.0
     python_executable: str = sys.executable
     catalog_index: Path = CATALOG_INDEX
@@ -93,7 +93,8 @@ class CaseOutcome:
 @dataclass
 class _Verified:
     conformance_ir: ir.ConformanceIR
-    artifact_files: list[dict[str, str]] = field(default_factory=lambda: [])
+    artifact: node_artifact.NodeArtifact
+    bound_source_digest: str
 
 
 def _rel_files(root: Path) -> set[str]:
@@ -127,29 +128,6 @@ def _load_catalog(index: Path) -> dict[str, str]:
     data = cast(Mapping[str, Any], yaml.safe_load(index.read_text(encoding="utf-8")))
     profiles = cast(list[Mapping[str, Any]], data.get("profiles") or [])
     return {str(p["id"]): str(p["digest"]) for p in profiles}
-
-
-def _artifact_manifest(path: Path) -> list[dict[str, str]]:
-    data = yaml.safe_load(path.read_bytes())
-    if not isinstance(data, Mapping):
-        raise RunnerRefusal("artifact manifest: expected mapping")
-    files = cast(Mapping[str, Any], data).get("files")
-    if not isinstance(files, list) or not files:
-        raise RunnerRefusal("artifact manifest: files must be a non-empty list")
-    out: list[dict[str, str]] = []
-    for i, raw in enumerate(cast(list[Any], files)):
-        if not isinstance(raw, Mapping):
-            raise RunnerRefusal(f"artifact manifest: files[{i}] expected mapping")
-        entry = cast(Mapping[str, Any], raw)
-        rel, digest = entry.get("path"), entry.get("sha256")
-        if not isinstance(rel, str) or not isinstance(digest, str):
-            raise RunnerRefusal(f"artifact manifest: files[{i}] needs string path and sha256")
-        if Path(rel).is_absolute() or ".." in Path(rel).parts:
-            raise RunnerRefusal(
-                f"artifact manifest: files[{i}].path must be relative and contained"
-            )
-        out.append({"path": rel, "sha256": digest})
-    return out
 
 
 def verify_inputs(request: RunRequest) -> _Verified:
@@ -199,19 +177,28 @@ def verify_inputs(request: RunRequest) -> _Verified:
                     f"case {case.case_id}: nodeid {case.nodeid} is not in the bound suite"
                 )
 
-    if not request.artifact_manifest_path.is_file():
-        raise RunnerRefusal(f"artifact manifest {request.artifact_manifest_path} is missing")
-    manifest_digest = sha256_file(request.artifact_manifest_path)
-    if manifest_digest != request.artifact_manifest_digest:
-        raise RunnerRefusal(
-            f"artifact manifest digest mismatch: bound {request.artifact_manifest_digest}, "
-            f"actual {manifest_digest}"
+    try:
+        artifact = node_artifact.load(
+            request.artifact_dir, request.artifact_manifest_path, request.artifact_manifest_digest
         )
-    artifact_files = _artifact_manifest(request.artifact_manifest_path)
-    _check_exact_tree(
-        request.artifact_dir, {f["path"]: f["sha256"] for f in artifact_files}, "node artifact"
+    except node_artifact.ArtifactRefused as exc:
+        raise RunnerRefusal(str(exc)) from exc
+    if artifact.product_ref is not None and artifact.product_ref != conformance_ir.product_ref:
+        raise RunnerRefusal(
+            f"node artifact product_ref {artifact.product_ref} is not the IR subject "
+            f"{conformance_ir.product_ref}"
+        )
+    bound_source = artifact.bound_source_digest or request.bound_source_digest
+    if bound_source is None:
+        raise RunnerRefusal("bound source digest is neither derivable nor supplied")
+    if request.bound_source_digest is not None and request.bound_source_digest != bound_source:
+        raise RunnerRefusal(
+            f"bound source digest mismatch: supplied {request.bound_source_digest}, "
+            f"derived {bound_source}"
+        )
+    return _Verified(
+        conformance_ir=conformance_ir, artifact=artifact, bound_source_digest=bound_source
     )
-    return _Verified(conformance_ir=conformance_ir, artifact_files=artifact_files)
 
 
 def _classify_junit(junit: Path, exit_code: int) -> tuple[Verdict, str]:
@@ -239,7 +226,9 @@ def _classify_junit(junit: Path, exit_code: int) -> tuple[Verdict, str]:
     return "pass", "passed"
 
 
-def run_case(case: ir.Case, request: RunRequest, work_root: Path) -> CaseOutcome:
+def run_case(
+    case: ir.Case, request: RunRequest, artifact_bind: node_artifact.NodeArtifact, work_root: Path
+) -> CaseOutcome:
     """Execute one case in a fresh temp dir and a fresh interpreter process."""
     case_dir = Path(tempfile.mkdtemp(prefix="case-", dir=work_root))
     try:
@@ -253,7 +242,7 @@ def run_case(case: ir.Case, request: RunRequest, work_root: Path) -> CaseOutcome
         env = {
             "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
             "HOME": str(case_dir),
-            "PYTHONPATH": str(artifact),
+            "PYTHONPATH": node_artifact.python_path(artifact_bind, artifact),
             "PYTHONHASHSEED": "0",
             "PYTHONDONTWRITEBYTECODE": "1",
             "L9_NODE_ARTIFACT_DIR": str(artifact),
@@ -331,7 +320,7 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
                 )
             else:
                 for case in obligation.cases:
-                    outcome = run_case(case, request, work_root)
+                    outcome = run_case(case, request, verified.artifact, work_root)
                     case_entry: dict[str, Any] = {
                         "case_id": outcome.case_id,
                         "verdict": outcome.verdict,
@@ -369,12 +358,18 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
         "exact_subject_ref": {
             "product_ref": cir.product_ref,
             "node_artifact": {
-                "manifest_digest": request.artifact_manifest_digest,
-                "files": verified.artifact_files,
+                "manifest_schema": verified.artifact.manifest_schema,
+                "manifest_digest": verified.artifact.manifest_digest,
+                "files": verified.artifact.files,
+                **(
+                    {"compilation_receipt": verified.artifact.compilation_receipt}
+                    if verified.artifact.compilation_receipt is not None
+                    else {}
+                ),
             },
             "implementation": {
                 "source_revision": request.source_revision,
-                "bound_source_digest": request.bound_source_digest,
+                "bound_source_digest": verified.bound_source_digest,
             },
         },
         "claim": CLAIM,

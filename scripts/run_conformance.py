@@ -28,7 +28,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--artifact-manifest", type=Path, required=True)
     parser.add_argument("--artifact-manifest-digest", required=True)
     parser.add_argument("--source-revision", required=True)
-    parser.add_argument("--bound-source-digest", required=True)
+    parser.add_argument(
+        "--bound-source-digest",
+        default=None,
+        help="required for synthetic manifests; derived (and checked if given) for compiler nodes",
+    )
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)

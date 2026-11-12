@@ -92,7 +92,8 @@ def make_closure(tmp_path: Path) -> Callable[[list[ObligationSpec]], Closure]:
             "def add(a, b):\n    return a + b\n", encoding="utf-8"
         )
         manifest = {
-            "files": [{"path": "toy_node.py", "sha256": sha256_file(artifact / "toy_node.py")}]
+            "schema": "l9-conformance/synthetic-node-manifest@0",
+            "files": [{"path": "toy_node.py", "sha256": sha256_file(artifact / "toy_node.py")}],
         }
         (tmp_path / "artifact-manifest.yaml").write_text(yaml.safe_dump(manifest), encoding="utf-8")
         suite = tmp_path / "suite"

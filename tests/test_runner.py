@@ -258,6 +258,7 @@ def test_case_runs_in_fresh_directory(make_closure: Build, tmp_path: Path) -> No
 
 def _cli_args(closure: Closure, out: Path, **overrides: str) -> list[str]:
     request = closure.request()
+    assert request.bound_source_digest is not None
     args = {
         "--ir": str(request.ir_path),
         "--ir-digest": request.ir_digest,

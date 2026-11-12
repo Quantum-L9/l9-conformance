@@ -21,35 +21,85 @@
     "emitted_at"
   ],
   "properties": {
-    "schema": {"const": "l9-conformance/conformance-receipt@1"},
-    "receipt_type": {"const": "l9.receipt/conformance@1"},
+    "schema": {
+      "const": "l9-conformance/conformance-receipt@1"
+    },
+    "receipt_type": {
+      "const": "l9.receipt/conformance@1"
+    },
     "receipt_identity": {
       "type": "string",
       "pattern": "^l9-conformance/receipt:sha256:[0-9a-f]{64}$"
     },
-    "receipt_digest": {"$ref": "#/$defs/digest"},
+    "receipt_digest": {
+      "$ref": "#/$defs/digest"
+    },
     "exact_subject_ref": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["product_ref", "node_artifact", "implementation"],
+      "required": [
+        "product_ref",
+        "node_artifact",
+        "implementation"
+      ],
       "properties": {
-        "product_ref": {"$ref": "#/$defs/nonEmpty"},
+        "product_ref": {
+          "$ref": "#/$defs/nonEmpty"
+        },
         "node_artifact": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["manifest_digest", "files"],
+          "required": [
+            "manifest_schema",
+            "manifest_digest",
+            "files"
+          ],
           "properties": {
-            "manifest_digest": {"$ref": "#/$defs/digest"},
-            "files": {"$ref": "#/$defs/fileDigests"}
+            "manifest_schema": {
+              "enum": [
+                "l9.semantic-compiler.node-artifact-manifest/v1",
+                "l9-conformance/synthetic-node-manifest@0"
+              ]
+            },
+            "manifest_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "files": {
+              "$ref": "#/$defs/fileDigests"
+            },
+            "compilation_receipt": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "receipt_identity",
+                "receipt_digest"
+              ],
+              "properties": {
+                "receipt_identity": {
+                  "type": "string",
+                  "pattern": "^l9\\.receipt-instance/[0-9a-f]{64}$"
+                },
+                "receipt_digest": {
+                  "$ref": "#/$defs/digest"
+                }
+              }
+            }
           }
         },
         "implementation": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["source_revision", "bound_source_digest"],
+          "required": [
+            "source_revision",
+            "bound_source_digest"
+          ],
           "properties": {
-            "source_revision": {"$ref": "#/$defs/nonEmpty"},
-            "bound_source_digest": {"$ref": "#/$defs/digest"}
+            "source_revision": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "bound_source_digest": {
+              "$ref": "#/$defs/digest"
+            }
           }
         }
       }
@@ -72,11 +122,22 @@
         "canonical_authority": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["repository", "revision", "admitted"],
+          "required": [
+            "repository",
+            "revision",
+            "admitted"
+          ],
           "properties": {
-            "repository": {"$ref": "#/$defs/nonEmpty"},
-            "revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
-            "admitted": {"type": "boolean"}
+            "repository": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "revision": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "admitted": {
+              "type": "boolean"
+            }
           }
         },
         "semantic_source_digests": {
@@ -84,82 +145,154 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["ref", "digest"],
+            "required": [
+              "ref",
+              "digest"
+            ],
             "properties": {
-              "ref": {"$ref": "#/$defs/nonEmpty"},
-              "digest": {"$ref": "#/$defs/digest"}
+              "ref": {
+                "$ref": "#/$defs/nonEmpty"
+              },
+              "digest": {
+                "$ref": "#/$defs/digest"
+              }
             }
           }
         },
-        "conformance_ir": {"$ref": "#/$defs/refDigest"},
-        "fixture_ir": {"$ref": "#/$defs/refDigest"},
+        "conformance_ir": {
+          "$ref": "#/$defs/refDigest"
+        },
+        "fixture_ir": {
+          "$ref": "#/$defs/refDigest"
+        },
         "rendered_suite": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["digest", "files"],
+          "required": [
+            "digest",
+            "files"
+          ],
           "properties": {
-            "digest": {"$ref": "#/$defs/digest"},
-            "files": {"$ref": "#/$defs/fileDigests"}
+            "digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "files": {
+              "$ref": "#/$defs/fileDigests"
+            }
           }
         },
         "profiles": {
           "type": "array",
-          "items": {"$ref": "#/$defs/refDigest"}
+          "items": {
+            "$ref": "#/$defs/refDigest"
+          }
         }
       }
     },
     "observation_or_outcome": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["obligations", "overall_verdict"],
+      "required": [
+        "obligations",
+        "overall_verdict"
+      ],
       "properties": {
         "obligations": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["obligation_id", "verification_class", "required", "verdict", "cases"],
+            "required": [
+              "obligation_id",
+              "verification_class",
+              "required",
+              "verdict",
+              "cases"
+            ],
             "properties": {
-              "obligation_id": {"$ref": "#/$defs/nonEmpty"},
-              "verification_class": {
-                "enum": ["fixture_replay", "static_inspection", "external_runtime_evidence"]
+              "obligation_id": {
+                "$ref": "#/$defs/nonEmpty"
               },
-              "required": {"type": "boolean"},
-              "verdict": {"$ref": "#/$defs/verdict"},
-              "reason": {"type": "string"},
+              "verification_class": {
+                "enum": [
+                  "fixture_replay",
+                  "static_inspection",
+                  "external_runtime_evidence"
+                ]
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "verdict": {
+                "$ref": "#/$defs/verdict"
+              },
+              "reason": {
+                "type": "string"
+              },
               "cases": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": ["case_id", "verdict", "detail"],
+                  "required": [
+                    "case_id",
+                    "verdict",
+                    "detail"
+                  ],
                   "properties": {
-                    "case_id": {"$ref": "#/$defs/nonEmpty"},
-                    "verdict": {"$ref": "#/$defs/verdict"},
-                    "detail": {"type": "string"},
-                    "record_digest": {"$ref": "#/$defs/digest"}
+                    "case_id": {
+                      "$ref": "#/$defs/nonEmpty"
+                    },
+                    "verdict": {
+                      "$ref": "#/$defs/verdict"
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "record_digest": {
+                      "$ref": "#/$defs/digest"
+                    }
                   }
                 }
               }
             }
           }
         },
-        "overall_verdict": {"$ref": "#/$defs/verdict"}
+        "overall_verdict": {
+          "$ref": "#/$defs/verdict"
+        }
       }
     },
     "verification_basis": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["isolation", "case_records", "reproduction"],
+      "required": [
+        "isolation",
+        "case_records",
+        "reproduction"
+      ],
       "properties": {
         "isolation": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["requested", "achieved", "limitations"],
+          "required": [
+            "requested",
+            "achieved",
+            "limitations"
+          ],
           "properties": {
-            "requested": {"$ref": "#/$defs/nonEmpty"},
-            "achieved": {"$ref": "#/$defs/nonEmpty"},
-            "limitations": {"type": "array", "items": {"type": "string"}}
+            "requested": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "achieved": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "limitations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         },
         "case_records": {
@@ -167,29 +300,65 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["case_id", "exit_code", "junit_digest"],
+            "required": [
+              "case_id",
+              "exit_code",
+              "junit_digest"
+            ],
             "properties": {
-              "case_id": {"$ref": "#/$defs/nonEmpty"},
-              "exit_code": {"type": ["integer", "null"]},
-              "junit_digest": {"oneOf": [{"$ref": "#/$defs/digest"}, {"type": "null"}]}
+              "case_id": {
+                "$ref": "#/$defs/nonEmpty"
+              },
+              "exit_code": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "junit_digest": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/digest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
-        "reproduction": {"$ref": "#/$defs/nonEmpty"}
+        "reproduction": {
+          "$ref": "#/$defs/nonEmpty"
+        }
       }
     },
     "producer_identity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["runner", "version", "code_digest"],
+      "required": [
+        "runner",
+        "version",
+        "code_digest"
+      ],
       "properties": {
-        "runner": {"const": "l9-conformance/runner"},
-        "version": {"$ref": "#/$defs/nonEmpty"},
-        "code_digest": {"$ref": "#/$defs/digest"}
+        "runner": {
+          "const": "l9-conformance/runner"
+        },
+        "version": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "code_digest": {
+          "$ref": "#/$defs/digest"
+        }
       }
     },
     "evidence_grade": {
-      "enum": ["canonical", "candidate_authority_rehearsal", "synthetic_test"]
+      "enum": [
+        "canonical",
+        "candidate_authority_rehearsal",
+        "synthetic_test"
+      ]
     },
     "authority": {
       "type": "object",
@@ -200,24 +369,53 @@
         "is_admission"
       ],
       "properties": {
-        "grants_semantic_authority": {"const": false},
-        "grants_execution_authority": {"const": false},
-        "is_admission": {"const": false}
+        "grants_semantic_authority": {
+          "const": false
+        },
+        "grants_execution_authority": {
+          "const": false
+        },
+        "is_admission": {
+          "const": false
+        }
       }
     },
-    "emitted_at": {"type": "string", "format": "date-time"}
+    "emitted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
   },
   "$defs": {
-    "nonEmpty": {"type": "string", "minLength": 1},
-    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
-    "verdict": {"enum": ["pass", "fail", "error", "unresolved"]},
+    "nonEmpty": {
+      "type": "string",
+      "minLength": 1
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "verdict": {
+      "enum": [
+        "pass",
+        "fail",
+        "error",
+        "unresolved"
+      ]
+    },
     "refDigest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["ref", "digest"],
+      "required": [
+        "ref",
+        "digest"
+      ],
       "properties": {
-        "ref": {"$ref": "#/$defs/nonEmpty"},
-        "digest": {"$ref": "#/$defs/digest"}
+        "ref": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
       }
     },
     "fileDigests": {
@@ -226,10 +424,17 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "sha256"],
+        "required": [
+          "path",
+          "sha256"
+        ],
         "properties": {
-          "path": {"$ref": "#/$defs/nonEmpty"},
-          "sha256": {"$ref": "#/$defs/digest"}
+          "path": {
+            "$ref": "#/$defs/nonEmpty"
+          },
+          "sha256": {
+            "$ref": "#/$defs/digest"
+          }
         }
       }
     }
