@@ -91,6 +91,9 @@ class RunRequest:
     suite_binding_path: Path | None = None
     suite_binding_digest: str | None = None
     ir_semantic_digest: str | None = None
+    # Governing semantic source files used by the run (e.g. the F1 schemas), as
+    # (ref, local path). Each is hashed by raw bytes and recorded; refs must be unique.
+    semantic_sources: tuple[tuple[str, Path], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -109,6 +112,7 @@ class _Verified:
     bound_source_digest: str
     unpublished_profiles: tuple[str, ...]
     harness: harness.HarnessBinding | None = None
+    semantic_sources: tuple[ir.RefDigest, ...] = ()
     profiles: tuple[ir.RefDigest, ...] = ()
     fixture_raw_digest: str = ""
     fixture_semantic_digest: str | None = None
@@ -266,6 +270,16 @@ def verify_inputs(request: RunRequest) -> _Verified:
             f"bound source digest mismatch: supplied {request.bound_source_digest}, "
             f"derived {bound_source}"
         )
+    sources: list[ir.RefDigest] = list(conformance_ir.semantic_sources)
+    for ref, path in request.semantic_sources:
+        if not ref:
+            raise RunnerRefusal("semantic source ref must not be empty")
+        if not path.is_file() or path.is_symlink():
+            raise RunnerRefusal(f"semantic source {ref} file {path} is missing or a symlink")
+        sources.append(ir.RefDigest(ref=ref, digest=sha256_file(path)))
+    refs = [s.ref for s in sources]
+    if len(refs) != len(set(refs)):
+        raise RunnerRefusal("semantic source refs must be unique")
     harness_binding: harness.HarnessBinding | None = None
     if request.harness is not None:
         try:
@@ -278,6 +292,7 @@ def verify_inputs(request: RunRequest) -> _Verified:
         bound_source_digest=bound_source,
         unpublished_profiles=tuple(unpublished),
         harness=harness_binding,
+        semantic_sources=tuple(sources),
         profiles=tuple(resolved_profiles),
         fixture_raw_digest=fixture_raw,
         fixture_semantic_digest=fixture_semantic,
@@ -595,7 +610,7 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
                 "admitted": cir.canonical_admitted,
             },
             "semantic_source_digests": [
-                {"ref": s.ref, "digest": s.digest} for s in cir.semantic_sources
+                {"ref": s.ref, "digest": s.digest} for s in verified.semantic_sources
             ],
             "conformance_ir": {
                 "ref": cir.ir_ref,

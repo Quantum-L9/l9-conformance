@@ -375,3 +375,22 @@ def test_v1_requires_suite_binding(v1: V1) -> None:
 def test_v1_suite_binding_digest_mismatch_refused(v1: V1) -> None:
     with pytest.raises(RunnerRefusal, match="suite binding digest mismatch"):
         run(v1.request(suite_binding_digest="sha256:" + "1" * 64))
+
+
+def test_semantic_sources_bound_by_raw_digest(v1: V1, tmp_path: Path) -> None:
+    schema = tmp_path / "conformance_ir.schema.yaml"
+    schema.write_text("schema: l9.schema-definition/v1\n", encoding="utf-8")
+    ref = f"Quantum-L9/.github@{REV}:semantics/conformance_ir.schema.yaml"
+    receipt = run(v1.request(semantic_sources=((ref, schema),)))
+    assert receipt["governing_coordinates"]["semantic_source_digests"] == [
+        {"ref": ref, "digest": sha256_file(schema)}
+    ]
+
+
+def test_semantic_source_refusals(v1: V1, tmp_path: Path) -> None:
+    schema = tmp_path / "s.yaml"
+    schema.write_text("x: 1\n", encoding="utf-8")
+    with pytest.raises(RunnerRefusal, match="missing or a symlink"):
+        run(v1.request(semantic_sources=(("ref", tmp_path / "absent.yaml"),)))
+    with pytest.raises(RunnerRefusal, match="unique"):
+        run(v1.request(semantic_sources=(("ref", schema), ("ref", schema))))

@@ -36,6 +36,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--suite-binding", type=Path, default=None, help="v1: suite binding file")
+    parser.add_argument("--suite-binding-digest", default=None, help="v1: sha256 of the binding")
+    parser.add_argument(
+        "--ir-semantic-digest", default=None, help="v1: expected IR semantic digest"
+    )
+    parser.add_argument(
+        "--semantic-source",
+        action="append",
+        default=[],
+        metavar="REF=PATH",
+        help="governing semantic source file to bind by raw sha256 (repeatable)",
+    )
     parser.add_argument("--harness-dir", type=Path, default=None, help="local harness root dir")
     parser.add_argument("--harness-root", default=None, help="declared repo-relative root")
     parser.add_argument("--harness-revision", default=None, help="harness source revision")
@@ -55,6 +67,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.harness_dir is not None
         else None
     )
+    sources: list[tuple[str, Path]] = []
+    for item in args.semantic_source:
+        ref, sep, path = item.partition("=")
+        if not sep or not ref or not path:
+            print(f"REFUSED: --semantic-source {item!r} is not REF=PATH", file=sys.stderr)
+            return 2
+        sources.append((ref, Path(path)))
     request = RunRequest(
         ir_path=args.ir,
         ir_digest=args.ir_digest,
@@ -67,6 +86,10 @@ def main(argv: list[str] | None = None) -> int:
         bound_source_digest=args.bound_source_digest,
         timeout_seconds=args.timeout,
         harness=harness,
+        semantic_sources=tuple(sources),
+        suite_binding_path=args.suite_binding,
+        suite_binding_digest=args.suite_binding_digest,
+        ir_semantic_digest=args.ir_semantic_digest,
         reproduction="python3 scripts/run_conformance.py "
         + shlex.join(argv if argv is not None else sys.argv[1:]),
     )
