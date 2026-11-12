@@ -165,8 +165,11 @@ def parse(document: Mapping[str, Any]) -> ConformanceIR:
         path = _str(f, "path", f"ir.rendered_suite.files[{i}]")
         if Path(path).is_absolute() or ".." in Path(path).parts:
             raise IRInvalid(f"ir.rendered_suite.files[{i}].path must be relative and contained")
+        normalized = Path(path).as_posix()
+        if normalized in {sf.path for sf in suite_files}:
+            raise IRInvalid(f"ir.rendered_suite.files[{i}].path {path!r} is bound more than once")
         suite_files.append(
-            SuiteFile(path=path, sha256=_digest(f, "sha256", f"ir.rendered_suite.files[{i}]"))
+            SuiteFile(path=normalized, sha256=_digest(f, "sha256", f"ir.rendered_suite.files[{i}]"))
         )
     if not suite_files:
         raise IRInvalid("ir.rendered_suite.files: must not be empty")

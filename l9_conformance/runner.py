@@ -130,11 +130,15 @@ def _check_exact_tree(root: Path, expected: Mapping[str, str], label: str) -> No
             )
 
 
-def _load_catalog(index: Path) -> dict[str, tuple[str, str]]:
-    """Profile id -> (digest, catalog status)."""
+def _load_catalog(index: Path) -> dict[str, tuple[str, str, Path]]:
+    """Profile id -> (catalog digest, catalog status, profile file path)."""
     data = cast(Mapping[str, Any], yaml.safe_load(index.read_text(encoding="utf-8")))
     profiles = cast(list[Mapping[str, Any]], data.get("profiles") or [])
-    return {str(p["id"]): (str(p["digest"]), str(p.get("status", ""))) for p in profiles}
+    root = index.resolve().parents[1]
+    return {
+        str(p["id"]): (str(p["digest"]), str(p.get("status", "")), root / str(p["path"]))
+        for p in profiles
+    }
 
 
 def verify_inputs(request: RunRequest) -> _Verified:
@@ -169,11 +173,20 @@ def verify_inputs(request: RunRequest) -> _Verified:
             raise RunnerRefusal(
                 f"profile {profile.ref} does not resolve in the l9-conformance catalog"
             )
-        catalog_digest, catalog_status = catalog[profile.ref]
+        catalog_digest, catalog_status, profile_path = catalog[profile.ref]
         if catalog_digest != profile.digest:
             raise RunnerRefusal(
                 f"profile {profile.ref} digest mismatch: bound {profile.digest}, "
                 f"catalog {catalog_digest}"
+            )
+        # The index only asserts a digest; the profile bytes themselves must match it.
+        if not profile_path.is_file() or profile_path.is_symlink():
+            raise RunnerRefusal(f"profile {profile.ref} file {profile_path} is missing")
+        file_digest = sha256_file(profile_path)
+        if file_digest != profile.digest:
+            raise RunnerRefusal(
+                f"profile {profile.ref} file digest mismatch: bound {profile.digest}, "
+                f"file {file_digest}"
             )
         if catalog_status != "published":
             unpublished.append(profile.ref)
@@ -273,6 +286,9 @@ def run_case(
             "PYTHONPATH": node_artifact.python_path(artifact_bind, artifact),
             "PYTHONHASHSEED": "0",
             "PYTHONDONTWRITEBYTECODE": "1",
+            # Only built-in pytest plugins: no entry-point plugin from the host
+            # interpreter may alter collection, execution, or the JUnit report.
+            "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
             "L9_NODE_ARTIFACT_DIR": str(artifact),
         }
         interpreter = _interpreter(run_req.python_executable)
