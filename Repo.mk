@@ -4,7 +4,10 @@
 .PHONY: repo-setup repo-validate repo-check repo-test \
 	sync lock-check fmt lint typecheck pytest catalog-check check-law ci
 
-repo-setup: sync ## Install the locked environment (uv.lock)
+# uv is the locked-toolchain installer; CI runners may not have it (pin as in Cursor-Governance Repo.mk).
+repo-setup: ## Install uv if absent, then the locked environment (uv.lock)
+	@command -v uv >/dev/null 2>&1 || python3 -m pip install --only-binary=:all: uv==0.12.1
+	$(MAKE) --no-print-directory sync
 repo-validate: lock-check catalog-check ## Validate uv.lock and catalog/profile integrity
 repo-check: lint typecheck ## Ruff format/lint and pyright strict
 repo-test: pytest ## Run the pytest suite
