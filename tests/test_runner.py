@@ -278,9 +278,7 @@ def _cli_args(closure: Closure, out: Path, **overrides: str) -> list[str]:
 def test_cli_exit_codes(make_closure: Build, tmp_path: Path) -> None:
     import json
 
-    from run_conformance import (
-        main,  # pyright: ignore[reportMissingImports, reportUnknownVariableType]
-    )
+    from run_conformance import main
 
     closure = make_closure([replay("ob/a", "test_pass")])
     out = tmp_path / "receipt.json"
@@ -352,3 +350,44 @@ def test_unsafe_junit_xml_is_error_not_pass(tmp_path: Path) -> None:
     verdict, detail = _classify_junit(junit, 0)
     assert verdict == "error"
     assert "unsafe XML" in detail
+
+
+def test_duplicate_suite_path_refused(make_closure: Build) -> None:
+    closure = make_closure([replay("ob/a", "test_pass")])
+    files = closure.ir_doc["rendered_suite"]["files"]
+    files.append({"path": "./test_toy.py", "sha256": "sha256:" + "c" * 64})
+    with pytest.raises(RunnerRefusal, match="bound more than once"):
+        run(closure.request())
+
+
+def test_profile_file_bytes_must_match(make_closure: Build, tmp_path: Path) -> None:
+    """The catalog index asserting the right digest is not enough; the file is hashed."""
+    import shutil
+
+    root = Path(__file__).resolve().parents[1]
+    catalog_root = tmp_path / "catalog-copy"
+    shutil.copytree(root / "catalog", catalog_root / "catalog")
+    profile = catalog_root / "catalog" / "fixture-profile-core-1.yaml"
+    digest = sha256_file(profile)
+    profile.write_text(profile.read_text(encoding="utf-8") + "# tampered\n", encoding="utf-8")
+    closure = make_closure([replay("ob/a", "test_pass")])
+    closure.ir_doc["profiles"] = [{"ref": "l9.fixture-profile/core@1", "digest": digest}]
+    request = closure.request(catalog_index=catalog_root / "catalog" / "INDEX.yaml")
+    with pytest.raises(RunnerRefusal, match="file digest mismatch"):
+        run(request)
+
+
+def test_host_pytest_plugins_not_autoloaded(make_closure: Build) -> None:
+    """A case observes PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 in its environment."""
+    closure = make_closure([])
+    suite = closure.root / "suite" / "test_toy.py"
+    suite.write_text(
+        "import os\n\n"
+        "def test_autoload_off():\n"
+        "    assert os.environ.get('PYTEST_DISABLE_PLUGIN_AUTOLOAD') == '1'\n",
+        encoding="utf-8",
+    )
+    closure.ir_doc["rendered_suite"]["files"][0]["sha256"] = sha256_file(suite)
+    closure.ir_doc["obligations"] = [replay("ob/plug", "test_autoload_off")]
+    receipt = run(closure.request())
+    assert _verdicts(receipt) == {"ob/plug": "pass"}
