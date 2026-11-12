@@ -51,11 +51,14 @@ CATALOG_INDEX: Final = REPO_ROOT / "catalog" / "INDEX.yaml"
 PACKAGE_DIR: Final = Path(__file__).resolve().parent
 SCHEMA_FILE: Final = REPO_ROOT / "schemas" / "conformance-receipt-1.schema.json"
 
+# Operator decision D3 (relayed 2026-11-12): process-level isolation is accepted for
+# rehearsal and canonical grade; the receipt records exactly what was achieved.
 ISOLATION_ACHIEVED: Final = "fresh_tempdir_fresh_process_scrubbed_env"
+ISOLATION_LEVEL: Final = "process"
+ISOLATION_NETWORK: Final = "best_effort_unrestricted"
 ISOLATION_LIMITATIONS: Final = (
-    "process-level isolation only: no container, no network namespace, no filesystem sandbox",
-    "per D3 (pending owner decision) receipts under this isolation are capped at "
-    "candidate_authority_rehearsal",
+    "no container, network namespace, or filesystem sandbox",
+    "network is not blocked; proxy and credential environment variables are not passed to cases",
 )
 PYTEST_NO_TESTS_COLLECTED: Final = 5
 
@@ -95,6 +98,7 @@ class _Verified:
     conformance_ir: ir.ConformanceIR
     artifact: node_artifact.NodeArtifact
     bound_source_digest: str
+    unpublished_profiles: tuple[str, ...]
 
 
 def _rel_files(root: Path) -> set[str]:
@@ -124,10 +128,11 @@ def _check_exact_tree(root: Path, expected: Mapping[str, str], label: str) -> No
             )
 
 
-def _load_catalog(index: Path) -> dict[str, str]:
+def _load_catalog(index: Path) -> dict[str, tuple[str, str]]:
+    """Profile id -> (digest, catalog status)."""
     data = cast(Mapping[str, Any], yaml.safe_load(index.read_text(encoding="utf-8")))
     profiles = cast(list[Mapping[str, Any]], data.get("profiles") or [])
-    return {str(p["id"]): str(p["digest"]) for p in profiles}
+    return {str(p["id"]): (str(p["digest"]), str(p.get("status", ""))) for p in profiles}
 
 
 def verify_inputs(request: RunRequest) -> _Verified:
@@ -155,16 +160,20 @@ def verify_inputs(request: RunRequest) -> _Verified:
         )
 
     catalog = _load_catalog(request.catalog_index)
+    unpublished: list[str] = []
     for profile in conformance_ir.profiles:
         if profile.ref not in catalog:
             raise RunnerRefusal(
                 f"profile {profile.ref} does not resolve in the l9-conformance catalog"
             )
-        if catalog[profile.ref] != profile.digest:
+        catalog_digest, catalog_status = catalog[profile.ref]
+        if catalog_digest != profile.digest:
             raise RunnerRefusal(
                 f"profile {profile.ref} digest mismatch: bound {profile.digest}, "
-                f"catalog {catalog[profile.ref]}"
+                f"catalog {catalog_digest}"
             )
+        if catalog_status != "published":
+            unpublished.append(profile.ref)
 
     suite_paths = {f.path for f in conformance_ir.suite_files}
     _check_exact_tree(
@@ -197,7 +206,10 @@ def verify_inputs(request: RunRequest) -> _Verified:
             f"derived {bound_source}"
         )
     return _Verified(
-        conformance_ir=conformance_ir, artifact=artifact, bound_source_digest=bound_source
+        conformance_ir=conformance_ir,
+        artifact=artifact,
+        bound_source_digest=bound_source,
+        unpublished_profiles=tuple(unpublished),
     )
 
 
@@ -294,11 +306,12 @@ def _producer_digest() -> str:
     return file_set_digest(files)
 
 
-def _grade(conformance_ir: ir.ConformanceIR) -> str:
+def grade(conformance_ir: ir.ConformanceIR, unpublished_profiles: tuple[str, ...]) -> str:
+    """Evidence grade from what was bound; isolation level never gates it (D3)."""
     if conformance_ir.synthetic:
         return "synthetic_test"
-    # Canonical grade requires admitted authority AND an isolation level not yet
-    # decided (D3); process-level isolation caps the grade at rehearsal.
+    if conformance_ir.canonical_admitted and not unpublished_profiles:
+        return "canonical"
     return "candidate_authority_rehearsal"
 
 
@@ -396,6 +409,8 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
             "isolation": {
                 "requested": cir.isolation,
                 "achieved": ISOLATION_ACHIEVED,
+                "level": ISOLATION_LEVEL,
+                "network": ISOLATION_NETWORK,
                 "limitations": list(ISOLATION_LIMITATIONS),
             },
             "case_records": case_records,
@@ -406,7 +421,7 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
             "version": RUNNER_VERSION,
             "code_digest": _producer_digest(),
         },
-        "evidence_grade": _grade(cir),
+        "evidence_grade": grade(cir, verified.unpublished_profiles),
         "authority": dict(AUTHORITY),
         "emitted_at": emitted,
     }

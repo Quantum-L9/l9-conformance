@@ -287,3 +287,28 @@ def test_cli_exit_codes(make_closure: Build, tmp_path: Path) -> None:
     refused = tmp_path / "refused.json"
     assert main(_cli_args(closure, refused, **{"--ir-digest": "sha256:" + "0" * 64})) == 2
     assert not refused.exists()
+
+
+def test_grade_rules(make_closure: Build) -> None:
+    """Grade never depends on isolation level (D3); it depends on authority and profiles."""
+    from dataclasses import replace
+
+    from l9_conformance import ir
+    from l9_conformance.runner import grade
+
+    closure = make_closure([replay("ob/a", "test_pass")])
+    base = ir.parse(closure.ir_doc)
+    assert grade(base, ()) == "synthetic_test"
+    real = replace(base, synthetic=False)
+    assert grade(real, ()) == "candidate_authority_rehearsal"
+    admitted = replace(real, canonical_admitted=True)
+    assert grade(admitted, ()) == "canonical"
+    assert grade(admitted, ("l9.fixture-profile/x@1",)) == "candidate_authority_rehearsal"
+
+
+def test_isolation_recorded_honestly(make_closure: Build) -> None:
+    receipt = run(make_closure([replay("ob/a", "test_pass")]).request())
+    isolation = receipt["verification_basis"]["isolation"]
+    assert isolation["level"] == "process"
+    assert isolation["network"] == "best_effort_unrestricted"
+    assert isolation["requested"] == "fresh_subject_per_case"

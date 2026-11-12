@@ -283,6 +283,8 @@
           "required": [
             "requested",
             "achieved",
+            "level",
+            "network",
             "limitations"
           ],
           "properties": {
@@ -297,6 +299,18 @@
               "items": {
                 "type": "string"
               }
+            },
+            "level": {
+              "enum": [
+                "process",
+                "container"
+              ]
+            },
+            "network": {
+              "enum": [
+                "best_effort_unrestricted",
+                "blocked"
+              ]
             }
           }
         },
