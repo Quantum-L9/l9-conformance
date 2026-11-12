@@ -9,14 +9,17 @@ law, never admits a subject, and never treats a receipt as authority.
 
 ## Commands
 
+The root `Makefile` is the generated `make-v1` facade (`.l9/repo-workflow.json`,
+`l9.repo-execution/v2`); never edit it. Repository targets live in `Repo.mk`.
+
 | Command | Purpose |
 |---|---|
-| `make sync` | install the locked environment (`uv.lock`) |
-| `make lint` | ruff format check + ruff lint |
-| `make typecheck` | pyright strict |
+| `make setup` | install the locked environment (`uv.lock`) |
+| `make validate` | `uv lock --check` + catalog/profile integrity |
+| `make check` | ruff format check + ruff lint + pyright strict |
 | `make test` | pytest |
-| `make check` | catalog/profile witnesses |
-| `make ci` | all of the above |
+| `make ci` | all four phases |
+| `make check-law LAW_ROOT=<.github checkout>` | trace fixtures to pinned law |
 
 ## Rules for agents
 

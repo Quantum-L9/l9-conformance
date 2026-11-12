@@ -1,27 +1,33 @@
-.PHONY: sync lint fmt typecheck test check check-law ci
+# GENERATED repository execution facade: make-v1. DO NOT EDIT.
+#
+# This file is owned by the central repository-execution tooling and is
+# reproduced byte-for-byte into each consumer's root Makefile. It defines only
+# the portable four-phase ABI and routes every phase to a repository-owned
+# leaf in Repo.mk. Repository implementation, product logic, CI orchestration,
+# and organization governance never live here.
+#
+# Regenerate from the versioned facade template with the repository-execution
+# reconcile command; make-v1 behavior is immutable once released.
+.DEFAULT_GOAL := help
+SHELL := /usr/bin/env bash
+.SHELLFLAGS := -eu -o pipefail -c
 
-sync:
-	uv sync --frozen
+# Composition, not isolation: the repository-owned implementation is included
+# and must exist. A repository without Repo.mk has no execution implementation
+# and fails here rather than passing silently.
+include Repo.mk
 
-fmt:
-	uv run ruff format l9_conformance scripts tests
+.PHONY: help setup validate check test
 
-lint:
-	uv run ruff format --check l9_conformance scripts tests
-	uv run ruff check l9_conformance scripts tests
+help: ## Show the portable repository-execution phases
+	@awk '\
+		BEGIN { FS = ":.*## "; } \
+		/^[A-Za-z0-9_.-]+:.*## / { \
+			printf "  %-24s %s\n", $$1, $$2; \
+		}' $(MAKEFILE_LIST)
 
-typecheck:
-	uv run pyright
-
-test:
-	uv run python -m pytest tests
-
-check:
-	uv run python scripts/check_core_profile.py
-	uv run python scripts/check_catalog.py
-
-# LAW_ROOT=<Quantum-L9/.github checkout at the pinned revision>
-check-law:
-	uv run python scripts/check_catalog.py --law-root $(LAW_ROOT)
-
-ci: lint typecheck test check
+# Portable make-v1 ABI. Each phase is exactly one repository-owned leaf.
+setup: repo-setup ## Establish repository dependencies
+validate: repo-validate ## Run repository validation
+check: repo-check ## Run repository static and quality checks
+test: repo-test ## Run repository tests
