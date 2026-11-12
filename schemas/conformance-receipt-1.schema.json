@@ -165,10 +165,10 @@
           }
         },
         "conformance_ir": {
-          "$ref": "#/$defs/refDigest"
+          "$ref": "#/$defs/irRef"
         },
         "fixture_ir": {
-          "$ref": "#/$defs/refDigest"
+          "$ref": "#/$defs/irRef"
         },
         "rendered_suite": {
           "type": "object",
@@ -489,6 +489,26 @@
           "sha256": {
             "$ref": "#/$defs/digest"
           }
+        }
+      }
+    },
+    "irRef": {
+      "description": "An IR bound by raw file-byte digest and, when its format defines one, by its semantic digest (canonical JSON of the parsed document; ruling D8).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "digest"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "semantic_digest": {
+          "$ref": "#/$defs/digest"
         }
       }
     }

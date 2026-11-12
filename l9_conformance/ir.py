@@ -94,6 +94,11 @@ class ConformanceIR:
     # The IR's own semantic digest, when the format defines one (v1); checked against
     # the caller-bound expected semantic digest.
     semantic_digest: str | None = None
+    # Where a case verdict comes from: the JUnit report (synthetic suites) or the
+    # rendered suite's outcome record keyed by exact case id (pytest/v2).
+    outcome_source: str = "junit"
+    # v1 subject.closure_digest, cross-checked against the rendered suite's cases file.
+    closure_digest: str | None = None
 
 
 def checked_nodeid(nodeid: str) -> str:

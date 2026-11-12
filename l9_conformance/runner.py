@@ -19,6 +19,7 @@ exactly one collected test with no failure, error, or skip and a zero exit statu
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -110,6 +111,7 @@ class _Verified:
     harness: harness.HarnessBinding | None = None
     profiles: tuple[ir.RefDigest, ...] = ()
     fixture_raw_digest: str = ""
+    fixture_semantic_digest: str | None = None
 
 
 def _rel_files(root: Path) -> set[str]:
@@ -189,9 +191,11 @@ def verify_inputs(request: RunRequest) -> _Verified:
         raise RunnerRefusal(f"fixture IR {request.fixture_ir_path} is missing")
     fixture_raw = sha256_file(request.fixture_ir_path)
     fixture_digest = fixture_raw
+    fixture_semantic: str | None = None
     if conformance_ir.fixture_digest_kind == "semantic":
         try:
             fixture_digest = sha256_canonical(yaml.safe_load(request.fixture_ir_path.read_bytes()))
+            fixture_semantic = fixture_digest
         except yaml.YAMLError as exc:
             raise RunnerRefusal(f"fixture IR unparseable: {exc}") from exc
     if fixture_digest != conformance_ir.fixture_ir.digest:
@@ -234,6 +238,8 @@ def verify_inputs(request: RunRequest) -> _Verified:
     _check_exact_tree(
         request.suite_dir, {f.path: f.sha256 for f in conformance_ir.suite_files}, "rendered suite"
     )
+    if conformance_ir.closure_digest is not None:
+        _check_suite_closure(request.suite_dir, conformance_ir.closure_digest)
     for obligation in conformance_ir.obligations:
         for case in obligation.cases:
             if case.nodeid.split("::", 1)[0] not in suite_paths:
@@ -274,7 +280,24 @@ def verify_inputs(request: RunRequest) -> _Verified:
         harness=harness_binding,
         profiles=tuple(resolved_profiles),
         fixture_raw_digest=fixture_raw,
+        fixture_semantic_digest=fixture_semantic,
     )
+
+
+def _check_suite_closure(suite_dir: Path, closure_digest: str) -> None:
+    """The rendered suite's cases file must name the IR's closure (pytest/v2)."""
+    cases_file = suite_dir / ir_v1.PYTEST_V2_CASES_FILE
+    try:
+        document = json.loads(cases_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise RunnerRefusal(f"rendered suite cases file unreadable: {exc}") from exc
+    if not isinstance(document, dict):
+        raise RunnerRefusal("rendered suite cases file is not a JSON object")
+    recorded = cast(dict[str, Any], document).get("closure_digest")
+    if recorded != closure_digest:
+        raise RunnerRefusal(
+            f"rendered suite closure_digest {recorded!r} is not the IR's {closure_digest}"
+        )
 
 
 def _load_ir(request: RunRequest, ir_bytes: bytes) -> ir.ConformanceIR:
@@ -349,12 +372,42 @@ def _interpreter(executable: str) -> str:
     return str(path)
 
 
+_RECORD_VERDICTS: Final = frozenset({"pass", "fail", "error", "unresolved"})
+
+
+def _classify_outcome_record(
+    path: Path, case_id: str, junit_verdict: Verdict
+) -> tuple[Verdict, str]:
+    """pytest/v2: the suite's outcome record is the verdict source; JUnit cross-checks.
+
+    The record is keyed by the exact case id. A missing record, a missing key, a value
+    outside the closed set, or disagreement with JUnit on whether the case passed is an
+    error, never a pass.
+    """
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return "error", "no readable outcome record"
+    if not isinstance(record, dict):
+        return "error", "outcome record is not a JSON object"
+    value = cast(dict[str, Any], record).get(case_id)
+    if value is None:
+        return "error", "case absent from outcome record"
+    if value not in _RECORD_VERDICTS:
+        return "error", f"outcome record value {value!r} outside the closed set"
+    recorded = cast(Verdict, value)
+    if (recorded == "pass") != (junit_verdict == "pass"):
+        return "error", f"outcome record {recorded} disagrees with junit {junit_verdict}"
+    return recorded, f"outcome record: {recorded}"
+
+
 def run_case(
     case: ir.Case,
     run_req: RunRequest,
     artifact_bind: node_artifact.NodeArtifact,
     work_root: Path,
     harness_bind: harness.HarnessBinding | None = None,
+    outcome_source: str = "junit",
 ) -> CaseOutcome:
     """Execute one case in a fresh temp dir and a fresh interpreter process."""
     case_dir = Path(tempfile.mkdtemp(prefix="case-", dir=work_root))
@@ -376,6 +429,7 @@ def run_case(
         ini = case_dir / "pytest.ini"
         ini.write_text("[pytest]\n", encoding="utf-8")
         junit = case_dir / "junit.xml"
+        outcomes = case_dir / "outcomes.json"
         env = {
             "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
             "HOME": str(case_dir),
@@ -386,8 +440,12 @@ def run_case(
             # interpreter may alter collection, execution, or the JUnit report.
             "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
             "L9_NODE_ARTIFACT_DIR": str(artifact),
+            # pytest/v2 suites write their per-case outcome record here.
+            "L9_CONFORMANCE_OUTCOMES": str(outcomes),
         }
         if harness_bind is not None:
+            # The rendered conftest reads L9_CONFORMANCE_DRIVER (module:factory).
+            env["L9_CONFORMANCE_DRIVER"] = harness_bind.driver_ref
             env["L9_HARNESS_DRIVER"] = harness_bind.driver_ref
         interpreter = _interpreter(run_req.python_executable)
         cmd: Sequence[str] = (
@@ -408,7 +466,7 @@ def run_case(
         try:
             proc = subprocess.run(
                 cmd,
-                cwd=case_dir,
+                cwd=suite,
                 env=env,
                 capture_output=True,
                 timeout=run_req.timeout_seconds,
@@ -421,6 +479,8 @@ def run_case(
                 case.case_id, "error", "no junit report produced", proc.returncode, None
             )
         verdict, detail = _classify_junit(junit, proc.returncode)
+        if outcome_source == "outcome_record":
+            verdict, detail = _classify_outcome_record(outcomes, case.case_id, verdict)
         return CaseOutcome(case.case_id, verdict, detail, proc.returncode, sha256_file(junit))
     finally:
         shutil.rmtree(case_dir, ignore_errors=True)
@@ -468,7 +528,12 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
             else:
                 for case in obligation.cases:
                     outcome = run_case(
-                        case, request, verified.artifact, work_root, verified.harness
+                        case,
+                        request,
+                        verified.artifact,
+                        work_root,
+                        verified.harness,
+                        cir.outcome_source,
                     )
                     case_entry: dict[str, Any] = {
                         "case_id": outcome.case_id,
@@ -532,8 +597,20 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
             "semantic_source_digests": [
                 {"ref": s.ref, "digest": s.digest} for s in cir.semantic_sources
             ],
-            "conformance_ir": {"ref": cir.ir_ref, "digest": request.ir_digest},
-            "fixture_ir": {"ref": cir.fixture_ir.ref, "digest": verified.fixture_raw_digest},
+            "conformance_ir": {
+                "ref": cir.ir_ref,
+                "digest": request.ir_digest,
+                **({"semantic_digest": cir.semantic_digest} if cir.semantic_digest else {}),
+            },
+            "fixture_ir": {
+                "ref": cir.fixture_ir.ref,
+                "digest": verified.fixture_raw_digest,
+                **(
+                    {"semantic_digest": verified.fixture_semantic_digest}
+                    if verified.fixture_semantic_digest
+                    else {}
+                ),
+            },
             "rendered_suite": {"digest": file_set_digest(suite_files), "files": suite_files},
             "profiles": [{"ref": p.ref, "digest": p.digest} for p in verified.profiles],
             **(

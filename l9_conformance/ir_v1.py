@@ -3,12 +3,12 @@
 Source: ``semantics/conformance_ir.schema.yaml`` at .github@44e02a09 (F1 v3.40.0).
 
 The v1 IR states obligations, their witnessing cases, dispositions and unresolved
-reasons. It does not carry the rendered pytest suite, the mapping from a witness
-case id to a pytest node id, a per-profile digest, or whether its authority revision
-is admitted. Those arrive in a separate, caller-digest-bound **suite binding**
-document (``l9-conformance/suite-binding@0``). Its final shape depends on the
-compiler's pytest/v2 rendering (pending); until then it is this repository's own
-interim input format.
+reasons. It does not carry the rendered suite, a per-profile digest, or whether its
+authority revision is admitted. Those arrive in a caller-digest-bound **suite binding**
+(``l9-conformance/suite-binding@1``) naming the compiler's pytest/v2 rendering: four
+files in one flat directory, each bound by raw sha256. A witness case id maps to the
+test ``test_l9_conformance.py::<identifier(case_id)>``; its verdict is read from the
+suite's outcome record (``L9_CONFORMANCE_OUTCOMES``), keyed by the exact case id.
 
 Parsing is strict and fail-closed: anything the adapter cannot interpret faithfully is
 an :class:`ir.IRInvalid`. It never invents an obligation, a case, or a digest.
@@ -26,7 +26,7 @@ from l9_conformance import ir
 from l9_conformance.digests import sha256_canonical
 
 SCHEMA: Final = "l9.conformance-ir/v1"
-SUITE_BINDING_SCHEMA: Final = "l9-conformance/suite-binding@0"
+SUITE_BINDING_SCHEMA: Final = "l9-conformance/suite-binding@1"
 PROFILE_DIGEST_FROM_CATALOG: Final = ""  # v1 profile refs carry no digest; runner binds file bytes
 _SUBJECT_CLASSES: Final = frozenset(
     {"product_invariant", "admitted_contract", "admitted_invariant"}
@@ -36,15 +36,28 @@ _UNRESOLVED_RESULTS: Final = frozenset({"unresolved", "incompatible", "unsat", "
 _VERDICT_RULE: Final = "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
 
 
+PYTEST_V2_FILES: Final = frozenset(
+    {"conftest.py", "test_l9_conformance.py", "l9_conformance_cases.json", "l9_conformance_eval.py"}
+)
+PYTEST_V2_TEST_MODULE: Final = "test_l9_conformance.py"
+PYTEST_V2_CASES_FILE: Final = "l9_conformance_cases.json"
+
+
 @dataclass(frozen=True)
 class SuiteBinding:
-    """Rendered-suite files and case id -> pytest node id map for one v1 IR."""
+    """The compiler's pytest/v2 rendered suite, bound by raw sha256 per file."""
 
     files: tuple[ir.SuiteFile, ...]
-    case_nodeids: Mapping[str, str]
     ir_ref: str
     fixture_ir_ref: str
     canonical_admitted: bool
+
+
+def identifier(case_id: str) -> str:
+    """The compiler's pytest/v2 test name for a case id (``_identifier``)."""
+    return "test_" + "".join(
+        c if (c.isascii() and (c.isalnum() or c == "_")) else "_" for c in case_id
+    )
 
 
 def _m(value: Any, where: str) -> Mapping[str, Any]:
@@ -85,29 +98,23 @@ def load_suite_binding(data: bytes) -> SuiteBinding:
         raise ir.IRInvalid(f"suite binding: unparseable: {exc}") from exc
     if doc.get("schema") != SUITE_BINDING_SCHEMA:
         raise ir.IRInvalid(f"suite binding schema must be {SUITE_BINDING_SCHEMA}")
+    if doc.get("layout") != "pytest/v2":
+        raise ir.IRInvalid("suite binding layout must be pytest/v2")
     admitted = doc.get("canonical_admitted")
     if not isinstance(admitted, bool):
         raise ir.IRInvalid("suite binding canonical_admitted: expected boolean")
     files: list[ir.SuiteFile] = []
-    seen: set[str] = set()
     for i, raw in enumerate(_l(doc.get("files"), "suite binding files")):
         f = _m(raw, f"suite binding files[{i}]")
         path = _s(f, "path", f"suite binding files[{i}]")
-        if path.startswith("/") or ".." in path.split("/") or path in seen:
-            raise ir.IRInvalid(f"suite binding files[{i}].path {path!r} invalid or duplicated")
-        seen.add(path)
         files.append(ir.SuiteFile(path=path, sha256=_digest(f, "sha256", f"suite files[{i}]")))
-    if not files:
-        raise ir.IRInvalid("suite binding files: must not be empty")
-    cases = _m(doc.get("cases"), "suite binding cases")
-    case_nodeids: dict[str, str] = {}
-    for case_id, nodeid in cases.items():
-        if not isinstance(nodeid, str):
-            raise ir.IRInvalid(f"suite binding case {case_id!r}: nodeid must be a string")
-        case_nodeids[str(case_id)] = ir.checked_nodeid(nodeid)
+    names = [f.path for f in files]
+    if len(names) != len(set(names)) or set(names) != set(PYTEST_V2_FILES):
+        raise ir.IRInvalid(
+            f"suite binding files must be exactly {sorted(PYTEST_V2_FILES)}, got {sorted(names)}"
+        )
     return SuiteBinding(
-        files=tuple(files),
-        case_nodeids=case_nodeids,
+        files=tuple(sorted(files, key=lambda f: f.path)),
         ir_ref=_s(doc, "ir_ref", "suite binding"),
         fixture_ir_ref=_s(doc, "fixture_ir_ref", "suite binding"),
         canonical_admitted=admitted,
@@ -190,9 +197,8 @@ def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceI
             if sorted(plan_cases) != sorted(witnesses):
                 raise ir.IRInvalid(f"{where}.execution_plan.cases differ from witnessed_by")
             for case_id in plan_cases:
-                if case_id not in binding.case_nodeids:
-                    raise ir.IRInvalid(f"{where}: case {case_id!r} has no rendered test")
-                cases.append(ir.Case(case_id=case_id, nodeid=binding.case_nodeids[case_id]))
+                nodeid = f"{PYTEST_V2_TEST_MODULE}::{identifier(case_id)}"
+                cases.append(ir.Case(case_id=case_id, nodeid=ir.checked_nodeid(nodeid)))
         elif oid not in unresolved_reasons:
             raise ir.IRInvalid(f"{where}: unresolved obligation not listed in ir.unresolved")
         obligations.append(
@@ -208,11 +214,16 @@ def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceI
     unknown_refs = set(unresolved_reasons) - seen
     if unknown_refs:
         raise ir.IRInvalid(f"ir.unresolved names unknown obligations: {sorted(unknown_refs)}")
-    suite_paths = {f.path for f in binding.files}
+    # A case id maps to one test name; two distinct ids must not collide (the compiler
+    # refuses this too). The same case id may witness more than one obligation.
+    names: dict[str, str] = {}
     for obligation in obligations:
         for case in obligation.cases:
-            if case.nodeid.split("::", 1)[0] not in suite_paths:
-                raise ir.IRInvalid(f"case {case.case_id}: node id not in bound suite files")
+            prior = names.setdefault(case.nodeid, case.case_id)
+            if prior != case.case_id:
+                raise ir.IRInvalid(
+                    f"case ids {prior!r} and {case.case_id!r} collide as {case.nodeid}"
+                )
 
     return ir.ConformanceIR(
         schema=SCHEMA,
@@ -233,6 +244,8 @@ def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceI
         obligations=tuple(obligations),
         fixture_digest_kind="semantic",
         semantic_digest=sha256_canonical(document),
+        outcome_source="outcome_record",
+        closure_digest=_digest(subject, "closure_digest", "ir.subject"),
     )
 
 
