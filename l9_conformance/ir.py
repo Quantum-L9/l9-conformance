@@ -13,6 +13,7 @@ fills in a missing obligation, case, or digest.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,14 @@ VERIFICATION_CLASSES: Final = frozenset(
 )
 
 VerificationClass = Literal["fixture_replay", "static_inspection", "external_runtime_evidence"]
+
+
+# A pytest node id restricted to "<relative/path>.py::<name>[::<name>...]" with an
+# optional parametrization suffix. No option-like or path-escaping forms are accepted.
+_NODEID: Final = re.compile(
+    r"^(?!-)(?:[A-Za-z0-9_][A-Za-z0-9_.-]*/)*[A-Za-z0-9_][A-Za-z0-9_.-]*\.py"
+    r"(?:::[A-Za-z_][A-Za-z0-9_]*)+(?:\[[A-Za-z0-9_.,=+-]*\])?$"
+)
 
 
 class IRInvalid(ValueError):
@@ -75,6 +84,13 @@ class ConformanceIR:
     isolation: str
     suite_files: tuple[SuiteFile, ...]
     obligations: tuple[Obligation, ...]
+
+
+def checked_nodeid(nodeid: str) -> str:
+    """Return ``nodeid`` if it is a plain contained pytest node id, else raise IRInvalid."""
+    if not _NODEID.fullmatch(nodeid) or ".." in nodeid.split("::", 1)[0].split("/"):
+        raise IRInvalid(f"case nodeid {nodeid!r} is not a plain contained pytest node id")
+    return nodeid
 
 
 def _req(mapping: Mapping[str, Any], key: str, where: str) -> Any:
@@ -175,7 +191,7 @@ def parse(document: Mapping[str, Any]) -> ConformanceIR:
             cases.append(
                 Case(
                     case_id=_str(c, "case_id", f"{where}.cases[{j}]"),
-                    nodeid=_str(c, "nodeid", f"{where}.cases[{j}]"),
+                    nodeid=checked_nodeid(_str(c, "nodeid", f"{where}.cases[{j}]")),
                 )
             )
         obligations.append(

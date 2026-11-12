@@ -24,7 +24,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import xml.etree.ElementTree as ET
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -32,6 +31,9 @@ from pathlib import Path
 from typing import Any, Final, cast
 
 import yaml
+from defusedxml import DefusedXmlException
+from defusedxml.ElementTree import ParseError
+from defusedxml.ElementTree import parse as parse_xml
 
 from l9_conformance import RUNNER_ID, RUNNER_VERSION, ir, node_artifact
 from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_file
@@ -137,6 +139,7 @@ def _load_catalog(index: Path) -> dict[str, tuple[str, str]]:
 
 def verify_inputs(request: RunRequest) -> _Verified:
     """Steps 1-5. Raises RunnerRefusal on any unverifiable binding."""
+    _interpreter(request.python_executable)
     if not request.ir_path.is_file():
         raise RunnerRefusal(f"conformance IR {request.ir_path} is missing")
     ir_bytes = request.ir_path.read_bytes()
@@ -215,9 +218,14 @@ def verify_inputs(request: RunRequest) -> _Verified:
 
 def _classify_junit(junit: Path, exit_code: int) -> tuple[Verdict, str]:
     try:
-        root = ET.parse(junit).getroot()
-    except (ET.ParseError, OSError) as exc:
+        # The report is written by peer-supplied suite code: parse it as untrusted XML.
+        root = parse_xml(junit, forbid_dtd=True).getroot()
+    except DefusedXmlException as exc:
+        return "error", f"junit report rejected as unsafe XML: {type(exc).__name__}"
+    except (ParseError, OSError) as exc:
         return "error", f"junit report unreadable: {exc}"
+    if root is None:
+        return "error", "junit report has no root element"
     testcases = list(root.iter("testcase"))
     if exit_code == PYTEST_NO_TESTS_COLLECTED or not testcases:
         return "unresolved", "no test collected for case nodeid"
@@ -238,16 +246,24 @@ def _classify_junit(junit: Path, exit_code: int) -> tuple[Verdict, str]:
     return "pass", "passed"
 
 
+def _interpreter(executable: str) -> str:
+    """The case interpreter must be an existing absolute executable file."""
+    path = Path(executable)
+    if not path.is_absolute() or not path.is_file() or not os.access(path, os.X_OK):
+        raise RunnerRefusal(f"case interpreter {executable!r} is not an absolute executable file")
+    return str(path)
+
+
 def run_case(
-    case: ir.Case, request: RunRequest, artifact_bind: node_artifact.NodeArtifact, work_root: Path
+    case: ir.Case, run_req: RunRequest, artifact_bind: node_artifact.NodeArtifact, work_root: Path
 ) -> CaseOutcome:
     """Execute one case in a fresh temp dir and a fresh interpreter process."""
     case_dir = Path(tempfile.mkdtemp(prefix="case-", dir=work_root))
     try:
         artifact = case_dir / "artifact"
         suite = case_dir / "suite"
-        shutil.copytree(request.artifact_dir, artifact)
-        shutil.copytree(request.suite_dir, suite)
+        shutil.copytree(run_req.artifact_dir, artifact)
+        shutil.copytree(run_req.suite_dir, suite)
         ini = case_dir / "pytest.ini"
         ini.write_text("[pytest]\n", encoding="utf-8")
         junit = case_dir / "junit.xml"
@@ -259,8 +275,9 @@ def run_case(
             "PYTHONDONTWRITEBYTECODE": "1",
             "L9_NODE_ARTIFACT_DIR": str(artifact),
         }
+        interpreter = _interpreter(run_req.python_executable)
         cmd: Sequence[str] = (
-            request.python_executable,
+            interpreter,
             "-B",
             "-m",
             "pytest",
@@ -272,7 +289,7 @@ def run_case(
             "no:cacheprovider",
             "-q",
             f"--junitxml={junit}",
-            str(suite / case.nodeid),
+            str(suite / ir.checked_nodeid(case.nodeid)),
         )
         try:
             proc = subprocess.run(
@@ -280,7 +297,7 @@ def run_case(
                 cwd=case_dir,
                 env=env,
                 capture_output=True,
-                timeout=request.timeout_seconds,
+                timeout=run_req.timeout_seconds,
                 check=False,
             )
         except subprocess.TimeoutExpired:

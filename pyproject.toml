@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "pyyaml>=6.0",
     "jsonschema>=4.21",
+    "defusedxml>=0.7.1",
 ]
 
 [dependency-groups]
@@ -15,6 +16,7 @@ dev = [
     "pyright>=1.1.380",
     "types-pyyaml>=6.0",
     "types-jsonschema>=4.21",
+    "types-defusedxml>=0.7",
 ]
 
 [tool.pytest.ini_options]

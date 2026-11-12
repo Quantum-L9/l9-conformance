@@ -197,7 +197,7 @@ def test_resolvable_profile_is_bound(make_closure: Build) -> None:
 def test_case_outside_bound_suite_refused(make_closure: Build) -> None:
     obligation = replay("ob/a", "test_pass")
     obligation["cases"][0]["nodeid"] = "../escape.py::test_x"
-    with pytest.raises(RunnerRefusal, match="not in the bound suite"):
+    with pytest.raises(RunnerRefusal, match="not a plain contained pytest node id"):
         run(make_closure([obligation]).request())
 
 
@@ -312,3 +312,41 @@ def test_isolation_recorded_honestly(make_closure: Build) -> None:
     assert isolation["level"] == "process"
     assert isolation["network"] == "best_effort_unrestricted"
     assert isolation["requested"] == "fresh_subject_per_case"
+
+
+@pytest.mark.parametrize(
+    "nodeid",
+    ["-p evil::test_x", "test_toy.py", "test_toy.py::test_pass; rm -rf /", "/abs/test_toy.py::t"],
+)
+def test_option_like_or_malformed_nodeid_refused(make_closure: Build, nodeid: str) -> None:
+    obligation = replay("ob/a", "test_pass")
+    obligation["cases"][0]["nodeid"] = nodeid
+    with pytest.raises(RunnerRefusal, match="not a plain contained pytest node id"):
+        run(make_closure([obligation]).request())
+
+
+def test_case_in_bound_suite_must_exist_in_suite(make_closure: Build) -> None:
+    obligation = replay("ob/a", "test_pass")
+    obligation["cases"][0]["nodeid"] = "other_file.py::test_x"
+    with pytest.raises(RunnerRefusal, match="not in the bound suite"):
+        run(make_closure([obligation]).request())
+
+
+def test_non_executable_interpreter_refused(make_closure: Build) -> None:
+    closure = make_closure([replay("ob/a", "test_pass")])
+    with pytest.raises(RunnerRefusal, match="case interpreter"):
+        run(closure.request(python_executable="python3"))
+
+
+def test_unsafe_junit_xml_is_error_not_pass(tmp_path: Path) -> None:
+    from l9_conformance.runner import _classify_junit  # pyright: ignore[reportPrivateUsage]
+
+    junit = tmp_path / "junit.xml"
+    junit.write_text(
+        '<?xml version="1.0"?>\n<!DOCTYPE x [<!ENTITY a "aaaa">]>\n'
+        '<testsuites><testsuite><testcase name="t"/></testsuite></testsuites>\n',
+        encoding="utf-8",
+    )
+    verdict, detail = _classify_junit(junit, 0)
+    assert verdict == "error"
+    assert "unsafe XML" in detail
