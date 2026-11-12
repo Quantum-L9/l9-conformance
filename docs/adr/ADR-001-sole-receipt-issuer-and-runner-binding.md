@@ -19,8 +19,11 @@ node artifact, so every input it trusts must be bound before any of that code ru
    rehearsal run is not a receipt.
 2. A receipt (`schemas/conformance-receipt-1.schema.json`) binds the conformance-IR
    and fixture-IR digests, the profile refs and digests, the rendered suite files, and
-   the exact node artifact files. It is content-addressed and immutable, and it is
-   evidence only: it carries no admission, authority or mutable currentness field.
+   the exact node artifact files. It is content-addressed and immutable. It is
+   evidence only and grants nothing: its required `authority` block fixes
+   `grants_semantic_authority`, `grants_execution_authority` and `is_admission` to
+   `false`, `canonical_authority.admitted` only records whether the input `.github`
+   revision was admitted, and it carries no mutable currentness field.
 3. The runner refuses before executing anything when an input is not bound:
    - each profile file's bytes are hashed and must match the IR digest;
    - catalog entry paths must stay inside `catalog/` (no absolute path, no `..`,
