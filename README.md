@@ -17,3 +17,25 @@ Check the witness:
 ```bash
 python3 scripts/check_core_profile.py
 ```
+
+## Candidate node-class profiles (not admitted)
+
+Archetype `l9.node-archetype/authoritative-state@1` requires conformance classes `core`, `capability`, `runtime` and `adapter` (`semantics/node_archetypes.yaml`, Quantum-L9/.github `dcd9d009`, blob `c1d0b422`). One profile per class, each versioned independently:
+
+| Identity | Class | Status |
+|---|---|---|
+| `l9.fixture-profile/authoritative-state-core@1` | `core` | candidate |
+| `l9.fixture-profile/authoritative-state-capability@1` | `capability` | candidate |
+| `l9.fixture-profile/authoritative-state-runtime@1` | `runtime` | candidate |
+| `l9.fixture-profile/authoritative-state-adapter@1` | `adapter` | candidate |
+
+Each profile's membership is one normative fixture witnessing that the archetype requires the class. Governing law does not say what each class obliges, which archetype requirements belong to which class, or which product-declared fixture sets exist; each profile records these as `unresolved` entries instead of inventing them. Digests are in `catalog/INDEX.yaml` and `SHA256SUMS`.
+
+```bash
+python3 scripts/check_catalog.py                       # integrity
+python3 scripts/check_catalog.py --law-root <.github>  # plus trace to pinned law
+```
+
+## Conformance runner and receipts
+
+`scripts/run_conformance.py` verifies every bound digest (conformance IR, fixture IR, catalog profiles, rendered suite, node artifact), runs each case in a fresh temporary directory and process, and emits an `l9-conformance/conformance-receipt@1` receipt (`schemas/conformance-receipt-1.schema.json`). A receipt is evidence only: it is not admission and grants no authority.

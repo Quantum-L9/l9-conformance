@@ -33,3 +33,4 @@ select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 include = ["l9_conformance", "scripts", "tests"]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
+extraPaths = ["scripts", "tests"]

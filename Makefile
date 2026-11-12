@@ -1,4 +1,4 @@
-.PHONY: sync lint fmt typecheck test check ci
+.PHONY: sync lint fmt typecheck test check check-law ci
 
 sync:
 	uv sync --frozen
@@ -18,5 +18,10 @@ test:
 
 check:
 	uv run python scripts/check_core_profile.py
+	uv run python scripts/check_catalog.py
+
+# LAW_ROOT=<Quantum-L9/.github checkout at the pinned revision>
+check-law:
+	uv run python scripts/check_catalog.py --law-root $(LAW_ROOT)
 
 ci: lint typecheck test check

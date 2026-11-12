@@ -1,0 +1,35 @@
+schema: l9-conformance/fixture@1
+id: l9.fixture/authoritative-state-requires-core@1
+kind: normative_fixture
+lifecycle_stage: candidate
+conformance_class: core
+governing_refs:
+- l9.node-archetype/authoritative-state@1
+- l9.node-archetypes/global@1
+- l9.conformance-model/global@1
+- l9.contract/conformance-resolution@1
+source_law:
+  repository: Quantum-L9/.github
+  revision: dcd9d0092740756c19ac681d399bd438409bdc52
+  path: semantics/node_archetypes.yaml
+  blob: c1d0b422c3b7cc7ee9ce1b9cfc34de19ed992571
+  sha256: sha256:57bb49405e9b888ad5bcfbc3d580755fb7c330e45983bb99821113bf930132bc
+  selector: $.archetypes[?(@.id=='l9.node-archetype/authoritative-state@1')].requires.conformance_classes
+  statement: l9.node-archetype/authoritative-state@1 requires conformance class core.
+  also_required_by:
+    archetype: l9.node-archetype/semantic-capability@1
+    selector: $.archetypes[?(@.id=='l9.node-archetype/semantic-capability@1')].requires.conformance_classes
+    relation: l9.node-archetype/authoritative-state@1 extends l9.node-archetype/semantic-capability@1
+observable:
+  archetype_id: l9.node-archetype/authoritative-state@1
+  required_conformance_classes:
+  - core
+  - capability
+  - runtime
+  - adapter
+expected:
+  conformance_class_present: core
+rules:
+- fixture_traces_to_existing_global_law
+- fixture_does_not_create_law
+- expected_result_is_not_owned_by_the_system_under_test
