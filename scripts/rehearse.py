@@ -15,8 +15,8 @@ Plan file (YAML), ``l9-conformance/rehearsal-plan@0``::
     semantic_sources:            # files in the authority checkout, bound by raw sha256
       - semantics/conformance_ir.schema.yaml
     harness:                     # inside the subject checkout
-      root_path: <repo-relative dir of the harness package>
-      root: <declared harness root, e.g. src/l9_state_conformance_harness>
+      declared_in: <subject-relative path of the product's repository-spec.yaml>
+      root: <optional; must be one of its conformance_harness_roots>
       driver_ref: <package.module:callable>
     compiler_outputs:            # data paths produced by the compiler (not run here)
       ir: <path>
@@ -31,6 +31,10 @@ Plan file (YAML), ``l9-conformance/rehearsal-plan@0``::
     python: <interpreter of the rehearsal venv>
     out: <receipt output path>
 
+The harness root is never assumed: it is read from
+``repository_structure.conformance_harness_roots`` in ``declared_in`` and resolved
+relative to that file's directory; the declaring file is bound as a semantic source.
+
 Exit codes follow scripts/run_conformance.py (0 pass, 1 non-pass receipt, 2 refused).
 """
 
@@ -41,7 +45,7 @@ import json
 import subprocess
 import sys
 from collections.abc import Mapping
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, cast
 
 import yaml
@@ -93,6 +97,44 @@ def _m(value: Any, where: str) -> Mapping[str, Any]:
     return cast(Mapping[str, Any], value)
 
 
+def declared_harness_root(subject_dir: Path, declared_in: str, requested: object) -> str:
+    """The harness root exactly as the product declares it, never assumed.
+
+    Reads ``repository_structure.conformance_harness_roots`` from ``declared_in`` (a
+    subject-relative repository-spec). A single declared root is used as-is; with
+    several, ``requested`` must name one of them. Returned without a trailing slash.
+    """
+    rel = PurePosixPath(declared_in)
+    if not declared_in or rel.is_absolute() or ".." in rel.parts:
+        raise PlanError(f"harness.declared_in {declared_in!r} must be relative and contained")
+    path = subject_dir / declared_in
+    if not path.is_file() or path.is_symlink():
+        raise PlanError(f"harness.declared_in {declared_in!r} is not a regular file")
+    try:
+        spec = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise PlanError(f"{declared_in}: unparseable: {exc}") from exc
+    structure = _m(_m(spec, declared_in).get("repository_structure"), "repository_structure")
+    raw = structure.get("conformance_harness_roots")
+    if not isinstance(raw, list) or not raw:
+        raise PlanError(f"{declared_in} declares no repository_structure.conformance_harness_roots")
+    roots: list[str] = []
+    for item in cast(list[Any], raw):
+        if not isinstance(item, str) or not item.strip("/"):
+            raise PlanError(f"{declared_in}: conformance_harness_roots entry {item!r} is invalid")
+        roots.append(item.rstrip("/"))
+    if requested is None:
+        if len(roots) != 1:
+            raise PlanError(
+                f"{declared_in} declares {len(roots)} harness roots; plan must name one"
+            )
+        return roots[0]
+    wanted = str(requested).rstrip("/")
+    if wanted not in roots:
+        raise PlanError(f"harness.root {requested!r} is not declared in {declared_in}: {roots}")
+    return wanted
+
+
 def build_request(plan: Mapping[str, Any]) -> RunRequest:
     if plan.get("schema") != PLAN_SCHEMA:
         raise PlanError(f"plan schema must be {PLAN_SCHEMA}")
@@ -108,9 +150,12 @@ def build_request(plan: Mapping[str, Any]) -> RunRequest:
         sources.append((f"{auth_slug}@{authority['commit']}:{rel}", auth_dir / rel))
     harness_plan = _m(plan.get("harness"), "harness")
     subj_slug = str(subject["url"]).rstrip("/").split("github.com/")[-1]
+    declared_in = str(harness_plan["declared_in"])
+    root = declared_harness_root(subj_dir, declared_in, harness_plan.get("root"))
+    sources.append((f"{subj_slug}@{subject['commit']}:{declared_in}", subj_dir / declared_in))
     harness = HarnessRequest(
-        root_dir=subj_dir / str(harness_plan["root_path"]),
-        root=str(harness_plan["root"]),
+        root_dir=subj_dir / PurePosixPath(declared_in).parent / root,
+        root=root,
         source_revision=f"{subj_slug}@{subject['commit']}",
         driver_ref=str(harness_plan["driver_ref"]),
     )

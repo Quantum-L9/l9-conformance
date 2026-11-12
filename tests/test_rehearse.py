@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from rehearse import PlanError, fetch_pinned
+from rehearse import PlanError, declared_harness_root, fetch_pinned
 
 
 def _git(cwd: Path, *args: str) -> str:
@@ -63,3 +63,53 @@ def test_fetch_pinned_rejects_dirty_checkout(origin: tuple[str, str], tmp_path: 
     (dest / "f.txt").write_text("tampered\n", encoding="utf-8")
     with pytest.raises(PlanError, match="not a clean checkout"):
         fetch_pinned(url, commit, dest)
+
+
+def _spec(tmp_path: Path, body: str) -> Path:
+    subject = tmp_path / "subject"
+    (subject / "pkg").mkdir(parents=True)
+    (subject / "pkg" / "repository-spec.yaml").write_text(body, encoding="utf-8")
+    return subject
+
+
+def test_declared_root_read_from_spec(tmp_path: Path) -> None:
+    subject = _spec(
+        tmp_path,
+        "repository_structure:\n  conformance_harness_roots:\n  - src/h_harness/\n",
+    )
+    assert declared_harness_root(subject, "pkg/repository-spec.yaml", None) == "src/h_harness"
+    assert (
+        declared_harness_root(subject, "pkg/repository-spec.yaml", "src/h_harness/")
+        == "src/h_harness"
+    )
+
+
+def test_undeclared_root_refused(tmp_path: Path) -> None:
+    subject = _spec(tmp_path, "repository_structure:\n  implementation_roots:\n  - src/\n")
+    with pytest.raises(PlanError, match="declares no"):
+        declared_harness_root(subject, "pkg/repository-spec.yaml", None)
+
+
+def test_root_not_in_declaration_refused(tmp_path: Path) -> None:
+    subject = _spec(
+        tmp_path,
+        "repository_structure:\n  conformance_harness_roots:\n  - src/h_harness/\n",
+    )
+    with pytest.raises(PlanError, match="not declared"):
+        declared_harness_root(subject, "pkg/repository-spec.yaml", "src/other")
+
+
+def test_ambiguous_roots_need_a_choice(tmp_path: Path) -> None:
+    subject = _spec(
+        tmp_path,
+        "repository_structure:\n  conformance_harness_roots:\n  - src/a/\n  - src/b/\n",
+    )
+    with pytest.raises(PlanError, match="plan must name one"):
+        declared_harness_root(subject, "pkg/repository-spec.yaml", None)
+    assert declared_harness_root(subject, "pkg/repository-spec.yaml", "src/b") == "src/b"
+
+
+def test_declared_in_must_be_contained(tmp_path: Path) -> None:
+    subject = _spec(tmp_path, "repository_structure: {}\n")
+    with pytest.raises(PlanError, match="contained"):
+        declared_harness_root(subject, "../outside.yaml", None)
