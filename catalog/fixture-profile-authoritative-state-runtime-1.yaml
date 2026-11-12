@@ -1,0 +1,68 @@
+schema: l9-conformance/fixture-profile@1
+id: l9.fixture-profile/authoritative-state-runtime@1
+status: candidate
+lifecycle_stage: candidate
+conformance_class: runtime
+scope:
+  product_kind: node
+  archetype_ref: l9.node-archetype/authoritative-state@1
+owner: l9-conformance
+membership:
+- l9.fixture/authoritative-state-requires-runtime@1
+membership_digests:
+  l9.fixture/authoritative-state-requires-runtime@1: sha256:3c555ff0820eebac144c4d3567c301b6904531799e4c51911f72efbf2432355a
+governing_refs:
+- l9.node-archetypes/global@1
+- l9.conformance-model/global@1
+- l9.contract/conformance-resolution@1
+unresolved:
+- id: U-AS-RUNTIME-1
+  kind: obligation_content
+  statement: No governing semantics at Quantum-L9/.github@dcd9d0092740756c19ac681d399bd438409bdc52 define
+    which obligations conformance class runtime imposes on l9.node-archetype/authoritative-state@1 beyond
+    the class being required. Membership is limited to the class-requirement witness.
+  resolution_requires: canonical law assigning obligations to the class, or an admitted product-declared
+    fixture set for this class
+- id: U-AS-RUNTIME-2
+  kind: class_assignment
+  statement: The archetype's requirements below are not assigned to any conformance class by governing
+    semantics; none is included in this profile.
+  unassigned_archetype_requirements:
+    required_architecture_patterns:
+    - l9.pattern/immutable-revisioned-state@1
+    - l9.pattern/semantic-core-gate-adapter@1
+    - l9.pattern/runnable-node@1
+    - l9.pattern/authority-candidate-admission@1
+    required_semantic_surfaces:
+    - semantic_core
+    - capability_contract
+    - product_topology
+    required_runtime_surfaces:
+    - gate_integration
+    - health
+    - readiness
+    - receipts
+    guarantees:
+    - historical_state_is_not_mutated
+    - corrections_create_new_revisions
+    - authoritative_state_boundary_is_remote_and_shared
+    forbidden:
+    - silent_revision_overwrite
+    - provider_becomes_state_semantic_owner
+    - semantic_ownership_inferred_from_transport
+    - direct_peer_routing_when_gate_is_required
+    - provider_becomes_semantic_owner
+- id: U-AS-RUNTIME-3
+  kind: product_fixture_sets
+  statement: No product-declared fixture set for this archetype/class is known to l9-conformance (State
+    topology profile_refs is empty per coordinator; not independently read).
+  resolution_requires: product-declared fixture set references with digests
+publication:
+  canonical_identity: l9.fixture-profile/authoritative-state-runtime@1
+  immutable_prior_versions: true
+  admitted: false
+does_not_own:
+- global_constitutional_law
+- node_product_semantics
+- state_product_semantics
+- product_release_admission

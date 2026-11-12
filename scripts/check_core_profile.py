@@ -29,7 +29,9 @@ def main() -> int:
         failures.append("fixture conformance_class is not core")
     if fixture.get("observable", {}).get("archetype_id") != ARCHETYPE:
         failures.append("fixture does not witness the semantic-subsystem archetype")
-    classes = fixture.get("observable", {}).get("required_conformance_classes") or []
+    classes: list[str] = list(
+        fixture.get("observable", {}).get("required_conformance_classes") or []
+    )
     if REQUIRED_CLASS not in classes:
         failures.append("fixture does not record required class core")
     if fixture.get("expected", {}).get("conformance_class_present") != REQUIRED_CLASS:
