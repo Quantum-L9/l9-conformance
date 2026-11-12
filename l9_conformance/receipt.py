@@ -23,7 +23,7 @@ from typing import Any, Final, Literal, cast
 
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
-from l9_conformance.digests import sha256_canonical
+from l9_conformance.digests import file_set_digest, sha256_canonical
 
 SCHEMA_ID: Final = "l9-conformance/conformance-receipt@1"
 RECEIPT_TYPE: Final = "l9.receipt/conformance@1"
@@ -142,6 +142,12 @@ def verify_receipt(receipt: Mapping[str, Any]) -> None:
             f"overall_verdict recorded {outcome['overall_verdict']}, derived {derived_overall}"
         )
     coordinates = cast(Mapping[str, Any], receipt["governing_coordinates"])
+    for block in ("rendered_suite", "harness"):
+        if block in coordinates:
+            bound = cast(Mapping[str, Any], coordinates[block])
+            files = cast(list[dict[str, str]], bound["files"])
+            if file_set_digest(files) != bound["digest"]:
+                raise ReceiptInvalid(f"{block}.digest is not the digest of its file list")
     authority = cast(Mapping[str, Any], coordinates["canonical_authority"])
     if receipt["evidence_grade"] == "canonical" and not authority["admitted"]:
         raise ReceiptInvalid("canonical evidence_grade requires admitted canonical authority")
