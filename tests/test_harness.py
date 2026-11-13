@@ -33,7 +33,12 @@ def _harness(tmp_path: Path) -> Path:
 
 def _req(pkg: Path, **kw: str) -> HarnessRequest:
     args = {"root": ROOT, "source_revision": "wip@" + "a" * 40, "driver_ref": DRIVER} | kw
-    return HarnessRequest(root_dir=pkg, **args)
+    return HarnessRequest(
+        root_dir=pkg,
+        root=args["root"],
+        source_revision=args["source_revision"],
+        driver_ref=args["driver_ref"],
+    )
 
 
 def test_binds_every_file_under_root(tmp_path: Path) -> None:
@@ -121,3 +126,123 @@ def test_run_refuses_unbindable_harness(make_closure: Build, tmp_path: Path) -> 
 def test_receipt_without_harness_has_no_harness_block(make_closure: Build) -> None:
     receipt = run(make_closure([replay("ob/a", "test_pass")]).request())
     assert "harness" not in receipt["governing_coordinates"]
+
+
+def _with_data(tmp_path: Path) -> tuple[Path, Path]:
+    pkg = _harness(tmp_path)
+    product = tmp_path / "wip"
+    (product / "contracts").mkdir()
+    (product / "contracts" / "surface.yaml").write_text("answer: 42\n", encoding="utf-8")
+    (pkg / "driver.py").write_text(
+        "from pathlib import Path\n\n"
+        "ROOT = Path(__file__).parents[2]\n\n"
+        "def create_driver():\n"
+        "    text = (ROOT / 'contracts' / 'surface.yaml').read_text()\n"
+        "    return lambda: int(text.split(':')[1])\n",
+        encoding="utf-8",
+    )
+    return pkg, product
+
+
+def test_data_files_bound_with_product_paths(tmp_path: Path) -> None:
+    pkg, product = _with_data(tmp_path)
+    binding = bind(
+        HarnessRequest(
+            root_dir=pkg,
+            root=ROOT,
+            source_revision="wip@" + "a" * 40,
+            driver_ref=DRIVER,
+            product_dir=product,
+            data_files=("contracts/surface.yaml",),
+        )
+    )
+    assert "contracts/surface.yaml" in {f["path"] for f in binding.files}
+    assert binding.data_files == ("contracts/surface.yaml",)
+
+
+@pytest.mark.parametrize(
+    ("data", "product_override", "match"),
+    [
+        (("../x.yaml",), None, "relative and contained"),
+        (("contracts/missing.yaml",), None, "missing"),
+        ((f"{ROOT}/driver.py",), None, "inside the harness root"),
+        (("contracts/surface.yaml",), "elsewhere", "not the declared root"),
+    ],
+)
+def test_data_file_refusals(
+    tmp_path: Path, data: tuple[str, ...], product_override: str | None, match: str
+) -> None:
+    pkg, product = _with_data(tmp_path)
+    if product_override is not None:
+        product = tmp_path / product_override
+        product.mkdir()
+    with pytest.raises(HarnessRefused, match=match):
+        bind(
+            HarnessRequest(
+                root_dir=pkg,
+                root=ROOT,
+                source_revision="wip@" + "a" * 40,
+                driver_ref=DRIVER,
+                product_dir=product,
+                data_files=data,
+            )
+        )
+
+
+def test_data_files_without_product_refused(tmp_path: Path) -> None:
+    pkg, _ = _with_data(tmp_path)
+    with pytest.raises(HarnessRefused, match="product directory"):
+        bind(
+            HarnessRequest(
+                root_dir=pkg,
+                root=ROOT,
+                source_revision="wip@" + "a" * 40,
+                driver_ref=DRIVER,
+                data_files=("contracts/surface.yaml",),
+            )
+        )
+
+
+def test_run_lays_harness_out_as_product_tree(make_closure: Build, tmp_path: Path) -> None:
+    pkg, product = _with_data(tmp_path)
+    closure = make_closure([])
+    suite = closure.root / "suite" / "test_toy.py"
+    suite.write_text(
+        "import importlib, os\n\n"
+        "def test_driver():\n"
+        "    mod, fn = os.environ['L9_HARNESS_DRIVER'].split(':')\n"
+        "    assert getattr(importlib.import_module(mod), fn)()() == 42\n",
+        encoding="utf-8",
+    )
+    closure.ir_doc["rendered_suite"]["files"][0]["sha256"] = sha256_file(suite)
+    closure.ir_doc["obligations"] = [replay("ob/h", "test_driver")]
+    request = HarnessRequest(
+        root_dir=pkg,
+        root=ROOT,
+        source_revision="wip@" + "a" * 40,
+        driver_ref=DRIVER,
+        product_dir=product,
+        data_files=("contracts/surface.yaml",),
+    )
+    receipt = run(closure.request(harness=request))
+    verify_receipt(receipt)
+    assert receipt["observation_or_outcome"]["overall_verdict"] == "pass"
+    paths = {f["path"] for f in receipt["governing_coordinates"]["harness"]["files"]}
+    assert "contracts/surface.yaml" in paths
+
+
+def test_harness_without_its_data_file_never_passes(make_closure: Build, tmp_path: Path) -> None:
+    pkg, _ = _with_data(tmp_path)
+    closure = make_closure([])
+    suite = closure.root / "suite" / "test_toy.py"
+    suite.write_text(
+        "import importlib, os\n\n"
+        "def test_driver():\n"
+        "    mod, fn = os.environ['L9_HARNESS_DRIVER'].split(':')\n"
+        "    assert getattr(importlib.import_module(mod), fn)()() == 42\n",
+        encoding="utf-8",
+    )
+    closure.ir_doc["rendered_suite"]["files"][0]["sha256"] = sha256_file(suite)
+    closure.ir_doc["obligations"] = [replay("ob/h", "test_driver")]
+    receipt = run(closure.request(harness=_req(pkg)))
+    assert receipt["observation_or_outcome"]["overall_verdict"] != "pass"

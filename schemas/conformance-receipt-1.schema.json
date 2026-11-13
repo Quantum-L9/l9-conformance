@@ -58,6 +58,7 @@
             "manifest_schema": {
               "enum": [
                 "l9.semantic-compiler.node-artifact-manifest/v1",
+                "l9-conformance/source-subject-manifest@0",
                 "l9-conformance/synthetic-node-manifest@0"
               ]
             },

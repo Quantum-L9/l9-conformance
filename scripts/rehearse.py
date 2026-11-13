@@ -18,6 +18,7 @@ Plan file (YAML), ``l9-conformance/rehearsal-plan@0``::
       declared_in: <subject-relative path of the product's repository-spec.yaml>
       root: <optional; must be one of its conformance_harness_roots>
       driver_ref: <package.module:callable>
+      data_files: [<product-relative files the harness reads at runtime>]   # optional
     compiler_outputs:            # data paths produced by the compiler (not run here)
       ir: <path>
       ir_digest: sha256:<raw>
@@ -26,8 +27,11 @@ Plan file (YAML), ``l9-conformance/rehearsal-plan@0``::
       suite_dir: <path>
       suite_binding: <path>
       suite_binding_digest: sha256:<raw>
-      node_dir: <path>
+      node_dir: <path>           # a compiled node tree, OR omit both and give subject_source
       node_manifest_digest: sha256:<semantic>
+    subject_source:              # alternative: the product's own source at the subject pin
+      source_path: <subject-relative import root, e.g. .../l9-state/src>
+      packages: [<importable package>, ...]
     python: <interpreter of the rehearsal venv>
     out: <receipt output path>
 
@@ -42,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from collections.abc import Mapping
@@ -52,7 +57,9 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from l9_conformance.digests import sha256_file
 from l9_conformance.harness import HarnessRequest
+from l9_conformance.node_artifact import SOURCE_SUBJECT_SCHEMA
 from l9_conformance.runner import RunnerRefusal, RunRequest, run
 
 PLAN_SCHEMA = "l9-conformance/rehearsal-plan@0"
@@ -135,6 +142,54 @@ def declared_harness_root(subject_dir: Path, declared_in: str, requested: object
     return wanted
 
 
+def stage_source_subject(
+    subject_dir: Path, source_revision: str, source_path: str, packages: list[str], dest: Path
+) -> tuple[Path, Path, str]:
+    """Copy the named packages from the pinned subject checkout and write their manifest.
+
+    Returns (subject tree, manifest path, manifest raw digest). Symlinks and bytecode are
+    refused; every copied file is bound by raw sha256 in the manifest.
+    """
+    rel = PurePosixPath(source_path)
+    if not source_path or rel.is_absolute() or ".." in rel.parts:
+        raise PlanError(
+            f"subject_source.source_path {source_path!r} must be relative and contained"
+        )
+    if not packages:
+        raise PlanError("subject_source.packages must not be empty")
+    if dest.exists():
+        shutil.rmtree(dest)
+    tree = dest / "tree"
+    files: list[dict[str, str]] = []
+    for pkg in packages:
+        src = subject_dir / source_path / pkg
+        if not pkg.isidentifier() or not src.is_dir() or src.is_symlink():
+            raise PlanError(
+                f"subject_source package {pkg!r} is not a directory under {source_path}"
+            )
+        for path in sorted(src.rglob("*")):
+            if path.is_symlink():
+                raise PlanError(f"subject_source: symlink {path.relative_to(subject_dir)}")
+            if "__pycache__" in path.parts or path.suffix in (".pyc", ".pyo"):
+                raise PlanError(f"subject_source: bytecode {path.relative_to(subject_dir)}")
+            if path.is_file():
+                rel_file = f"{pkg}/{path.relative_to(src).as_posix()}"
+                target = tree / rel_file
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
+                files.append({"path": rel_file, "sha256": sha256_file(path)})
+    manifest = {
+        "schema": SOURCE_SUBJECT_SCHEMA,
+        "source_revision": source_revision,
+        "source_path": source_path,
+        "packages": list(packages),
+        "files": files,
+    }
+    manifest_path = dest / "subject-manifest.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest, sort_keys=True), encoding="utf-8")
+    return tree, manifest_path, sha256_file(manifest_path)
+
+
 def build_request(plan: Mapping[str, Any]) -> RunRequest:
     if plan.get("schema") != PLAN_SCHEMA:
         raise PlanError(f"plan schema must be {PLAN_SCHEMA}")
@@ -153,22 +208,40 @@ def build_request(plan: Mapping[str, Any]) -> RunRequest:
     declared_in = str(harness_plan["declared_in"])
     root = declared_harness_root(subj_dir, declared_in, harness_plan.get("root"))
     sources.append((f"{subj_slug}@{subject['commit']}:{declared_in}", subj_dir / declared_in))
+    product_dir = subj_dir / PurePosixPath(declared_in).parent
     harness = HarnessRequest(
-        root_dir=subj_dir / PurePosixPath(declared_in).parent / root,
+        root_dir=product_dir / root,
+        product_dir=product_dir,
+        data_files=tuple(str(f) for f in cast(list[Any], harness_plan.get("data_files") or [])),
         root=root,
         source_revision=f"{subj_slug}@{subject['commit']}",
         driver_ref=str(harness_plan["driver_ref"]),
     )
     out = _m(plan.get("compiler_outputs"), "compiler_outputs")
-    node_dir = Path(str(out["node_dir"]))
+    subject_source = plan.get("subject_source")
+    if subject_source is not None:
+        if "node_dir" in out or "node_manifest_digest" in out:
+            raise PlanError("give either compiler_outputs.node_dir or subject_source, not both")
+        ss = _m(subject_source, "subject_source")
+        node_dir, manifest_path, manifest_digest = stage_source_subject(
+            subj_dir,
+            f"{subj_slug}@{subject['commit']}",
+            str(ss["source_path"]),
+            [str(p) for p in cast(list[Any], ss.get("packages") or [])],
+            workdir / "subject-node",
+        )
+    else:
+        node_dir = Path(str(out["node_dir"]))
+        manifest_path = node_dir / "evidence" / "artifact-manifest.yaml"
+        manifest_digest = str(out["node_manifest_digest"])
     return RunRequest(
         ir_path=Path(str(out["ir"])),
         ir_digest=str(out["ir_digest"]),
         fixture_ir_path=Path(str(out["fixture_ir"])),
         suite_dir=Path(str(out["suite_dir"])),
         artifact_dir=node_dir,
-        artifact_manifest_path=node_dir / "evidence" / "artifact-manifest.yaml",
-        artifact_manifest_digest=str(out["node_manifest_digest"]),
+        artifact_manifest_path=manifest_path,
+        artifact_manifest_digest=manifest_digest,
         source_revision=f"{subj_slug}@{subject['commit']}",
         python_executable=str(plan["python"]),
         harness=harness,

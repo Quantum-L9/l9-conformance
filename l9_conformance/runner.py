@@ -433,14 +433,13 @@ def run_case(
         shutil.copytree(run_req.suite_dir, suite)
         python_path = node_artifact.python_path(artifact_bind, artifact)
         if harness_bind is not None and run_req.harness is not None:
-            harness_parent = case_dir / "harness"
-            harness_copy = harness_parent / harness_bind.package
-            shutil.copytree(run_req.harness.root_dir, harness_copy)
-            if harness.copy_digest(harness_bind, harness_copy) != harness_bind.digest:
+            harness_product = case_dir / "harness"
+            harness_import_root = harness.lay_out(harness_bind, run_req.harness, harness_product)
+            if harness.copy_digest(harness_bind, harness_product) != harness_bind.digest:
                 return CaseOutcome(
                     case.case_id, "error", "harness bytes changed after binding", None, None
                 )
-            python_path = os.pathsep.join([python_path, str(harness_parent)])
+            python_path = os.pathsep.join([python_path, str(harness_import_root)])
         ini = case_dir / "pytest.ini"
         ini.write_text("[pytest]\n", encoding="utf-8")
         junit = case_dir / "junit.xml"

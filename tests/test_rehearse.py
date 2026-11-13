@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from rehearse import PlanError, declared_harness_root, fetch_pinned
+from rehearse import PlanError, declared_harness_root, fetch_pinned, stage_source_subject
 
 
 def _git(cwd: Path, *args: str) -> str:
@@ -113,3 +113,31 @@ def test_declared_in_must_be_contained(tmp_path: Path) -> None:
     subject = _spec(tmp_path, "repository_structure: {}\n")
     with pytest.raises(PlanError, match="contained"):
         declared_harness_root(subject, "../outside.yaml", None)
+
+
+def test_stage_source_subject_binds_every_file(tmp_path: Path) -> None:
+    subject = tmp_path / "subject"
+    (subject / "src" / "pkg" / "sub").mkdir(parents=True)
+    (subject / "src" / "pkg" / "__init__.py").write_bytes(b"")
+    (subject / "src" / "pkg" / "sub" / "m.py").write_bytes(b"Y = 1\n")
+    (subject / "src" / "other").mkdir()
+    (subject / "src" / "other" / "__init__.py").write_bytes(b"")
+    tree, manifest, digest = stage_source_subject(
+        subject, "Org/r@" + "b" * 40, "src", ["pkg"], tmp_path / "staged"
+    )
+    from l9_conformance import node_artifact
+
+    art = node_artifact.load(tree, manifest, digest)
+    assert [f["path"] for f in art.files] == ["pkg/__init__.py", "pkg/sub/m.py"]
+    assert not (tree / "other").exists()
+
+
+def test_stage_source_subject_refuses_bytecode(tmp_path: Path) -> None:
+    subject = tmp_path / "subject"
+    (subject / "src" / "pkg" / "__pycache__").mkdir(parents=True)
+    (subject / "src" / "pkg" / "__init__.py").write_bytes(b"")
+    (subject / "src" / "pkg" / "__pycache__" / "x.pyc").write_bytes(b"\0")
+    with pytest.raises(PlanError, match="bytecode"):
+        stage_source_subject(subject, "Org/r@" + "b" * 40, "src", ["pkg"], tmp_path / "s")
+    with pytest.raises(PlanError, match="contained"):
+        stage_source_subject(subject, "Org/r@" + "b" * 40, "../x", ["pkg"], tmp_path / "s")
