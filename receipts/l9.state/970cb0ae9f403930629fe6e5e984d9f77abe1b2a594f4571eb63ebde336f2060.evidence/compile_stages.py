@@ -4,7 +4,10 @@ The compiler's rehearsal writes conformance_ir.json and suite/ but keeps the fix
 This wrapper records the return value of the compiler's own lower_fixture_ir call (unchanged) so
 the runner can bind the fixture IR bytes. Nothing else is altered.
 """
-import hashlib, json, sys
+
+import hashlib
+import json
+import sys
 from pathlib import Path
 
 compiler, out = Path(sys.argv[1]).resolve(), Path(sys.argv[2]).resolve()
@@ -23,10 +26,14 @@ from l9_semantic_compiler.product import rehearsal  # noqa: E402
 
 captured = {}
 _orig = rehearsal.lower_fixture_ir
+
+
 def _capture(*a, **k):
     result = _orig(*a, **k)
     captured["fixture_ir"] = result.fixture_ir
     return result
+
+
 rehearsal.lower_fixture_ir = _capture
 
 doc = rehearse_product.rehearse_specimen(
@@ -38,6 +45,8 @@ doc = rehearse_product.rehearse_specimen(
     out=out,
 )
 if captured.get("fixture_ir") is not None:
-    (out / "fixture_ir.json").write_text(json.dumps(captured["fixture_ir"], sort_keys=True, indent=1))
+    (out / "fixture_ir.json").write_text(
+        json.dumps(captured["fixture_ir"], sort_keys=True, indent=1)
+    )
 print(doc["status"], json.dumps(doc["refusals"])[:2000])
 print(json.dumps(doc["digests"], indent=1, sort_keys=True)[:4000])
