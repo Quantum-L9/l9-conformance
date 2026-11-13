@@ -1,0 +1,1920 @@
+{
+  "authority": {
+    "grants_execution_authority": false,
+    "grants_semantic_authority": false,
+    "is_admission": false
+  },
+  "claim": "The exact subject was executed against the exact bound conformance closure and produced the recorded per-obligation outcomes. This receipt does not admit, authorize, or publish the subject.",
+  "emitted_at": "2026-11-13T00:54:52Z",
+  "evidence_grade": "candidate_authority_rehearsal",
+  "exact_subject_ref": {
+    "implementation": {
+      "bound_source_digest": "sha256:7182f79b66e56dd0087547c6ff6e0bbfd0fa1566f9c4126b56d91acbcd715edc",
+      "source_revision": "Quantum-L9/l9-wip@711da6842378eea88d5dace26ffa48bedd632a7b",
+      "source_revision_basis": "caller_supplied"
+    },
+    "node_artifact": {
+      "files": [
+        {
+          "path": "l9_state/__init__.py",
+          "sha256": "sha256:cfa08333b82465bf45c23cfdba335ba0779baefb004e2c2f0ce32ff8eb95ebd7"
+        },
+        {
+          "path": "l9_state/adapters/__init__.py",
+          "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "l9_state/adapters/memory.py",
+          "sha256": "sha256:a35da2d6151d550830a69a5a8a133b2955dd5ec6ec5f5da1728854fecac81fc2"
+        },
+        {
+          "path": "l9_state/adapters/mongodb.py",
+          "sha256": "sha256:bde735f785d1790e4e31311aed5ccfbe8c53ded382531138d6906e035c7b7cfd"
+        },
+        {
+          "path": "l9_state/adapters/mongodb_contract.py",
+          "sha256": "sha256:b0695cdd7e8b8b58f25fca71d270d04412e54383ad4c841edcc3cbd53f4b8fe7"
+        },
+        {
+          "path": "l9_state/bindings/__init__.py",
+          "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "l9_state/bindings/gate.py",
+          "sha256": "sha256:1bc84e96bcf4dea40ff67c378150d554dbbd6dd261d8f0ebea9a8c84d8c8cfca"
+        },
+        {
+          "path": "l9_state/catalog.py",
+          "sha256": "sha256:1f0424f68a2497ed5ba3fc7984ce7c631bdbb4b837b3b8d0325a194ac348697e"
+        },
+        {
+          "path": "l9_state/client.py",
+          "sha256": "sha256:416cb7dfcfd0806377c8400dd9e914585255764fadc8f2ce2ed0d816bfb8e44e"
+        },
+        {
+          "path": "l9_state/cursor.py",
+          "sha256": "sha256:2f839377ce7e73389b3e2fc59acca312486262a1fba8a94cfc23d0c4a172df94"
+        },
+        {
+          "path": "l9_state/digests.py",
+          "sha256": "sha256:0abb2a7b99cf88f8ee23f5776861f2edcbe1e552753b01acf042a424bcdbcf5c"
+        },
+        {
+          "path": "l9_state/errors.py",
+          "sha256": "sha256:ba77dc1498a3094e20aed290df7f4bd52454d98e01c11423733754c72218f92a"
+        },
+        {
+          "path": "l9_state/execution.py",
+          "sha256": "sha256:680c4fddb328a5b22475365053f093347a37b1aa6d885e2f1380a3d0c01a0209"
+        },
+        {
+          "path": "l9_state/internal_models.py",
+          "sha256": "sha256:059d6535c9b1a8f6da66160eaa559cfe790ddd353597ee42dcb912efe38b735b"
+        },
+        {
+          "path": "l9_state/lifecycle.py",
+          "sha256": "sha256:868f3ebcd5c3bf1fa904ccbca7e7a87d2507f351243e343ecae68c973da65769"
+        },
+        {
+          "path": "l9_state/models.py",
+          "sha256": "sha256:7262ddcb3fd840e1d145b4a8f96c5f9e8c6598c62ab2daa6b5786bdc4baa5e17"
+        },
+        {
+          "path": "l9_state/outcomes.py",
+          "sha256": "sha256:8c8cdf27df496973aece2acad2a4a1a35c080da42f2340129892c2b324757829"
+        },
+        {
+          "path": "l9_state/ports.py",
+          "sha256": "sha256:a734082e411ef1fe25f8235ededf850e45993d997c7fd115bed0f4d08615ed07"
+        },
+        {
+          "path": "l9_state/retention.py",
+          "sha256": "sha256:e07332529f43963fdaf8889aa480852970362a787d4d811269b7ea811c3a6e28"
+        },
+        {
+          "path": "l9_state/service.py",
+          "sha256": "sha256:8a3193ffe8598cd4891cadaded5168251ee0a882b6d30344f7614674cfaae061"
+        }
+      ],
+      "manifest_digest": "sha256:73e0cf34da531f4c025bac3764a6bcd3bd1a83d9ccae8af5055c165999d0ed83",
+      "manifest_schema": "l9-conformance/source-subject-manifest@0"
+    },
+    "product_ref": "l9.state"
+  },
+  "governing_coordinates": {
+    "canonical_authority": {
+      "admitted": false,
+      "repository": "Quantum-L9/.github",
+      "revision": "44e02a090ea0e27f91c8fe3c245e2033ad80699f"
+    },
+    "conformance_ir": {
+      "digest": "sha256:f767c515ea3451835c576039f763921a4aa108591931ffe87a841e28f823792b",
+      "ref": "Quantum-L9/l9-semantic-compiler-engine@9040ff9e70033ffeb56fbb44dea678253f62ecb0:tools/rehearse_product.py(tests/specimens/l9-state-711da68)/conformance_ir.json",
+      "semantic_digest": "sha256:2be9d557f0a865ab59a45d35fe18d29ca9af7b975caef08601d91faf9a1cb479"
+    },
+    "fixture_ir": {
+      "digest": "sha256:3d320bd910356a8c6fbe51d74d942915ce92d4964ab83a7d8b1e3af03a1ef71c",
+      "ref": "Quantum-L9/l9-semantic-compiler-engine@9040ff9e70033ffeb56fbb44dea678253f62ecb0:tools/rehearse_product.py(tests/specimens/l9-state-711da68)/fixture_ir",
+      "semantic_digest": "sha256:b7f05520c91c3247d47e27a5dc483aac37373ab489635725357cbb4c6f8a303e"
+    },
+    "harness": {
+      "digest": "sha256:c0e7a9a901fe684231f82a3974aac46bf6434e4766698e6b66aaeb279a90245c",
+      "driver_ref": "l9_state_conformance_harness.driver:create_driver",
+      "files": [
+        {
+          "path": "src/l9_state_conformance_harness/__init__.py",
+          "sha256": "sha256:5f648f545591b3e7cf39806ebf8e38c60d14491390c4e3b44ab3c98b7fd7d142"
+        },
+        {
+          "path": "src/l9_state_conformance_harness/controls.py",
+          "sha256": "sha256:b6113e01c1d08924de02e6eee3f2eda6362e51a9c18143ca1f5cc19b02709034"
+        },
+        {
+          "path": "src/l9_state_conformance_harness/driver.py",
+          "sha256": "sha256:efa18eeb555631c0b5dc3fe793dd01c8eb5ef1ae1200ed4bac69329c7bb4662c"
+        },
+        {
+          "path": "src/l9_state_conformance_harness/observations.py",
+          "sha256": "sha256:87dd57cb989564ce8c9a444e44a0fc8446b74cb391997c2d9c52110e178e123d"
+        },
+        {
+          "path": "contracts/STATE_HARNESS_CONTRACTS.yaml",
+          "sha256": "sha256:479614a01e2414f3359da8a5a3d8e4ee4ffe287eb834b8adc3727f48e5caab5c"
+        },
+        {
+          "path": "contracts/STATE_HARNESS_SURFACE.yaml",
+          "sha256": "sha256:138ac82ae125359633769a81dea6f65cc683ac7f49feba6f020bbb40af045630"
+        },
+        {
+          "path": "product-topology.yaml",
+          "sha256": "sha256:e0a10a71d9762478c516c38bbebf241cc7c2405613f5ab34424404ee1af9ae97"
+        }
+      ],
+      "root": "src/l9_state_conformance_harness",
+      "source_revision": "Quantum-L9/l9-wip@711da6842378eea88d5dace26ffa48bedd632a7b",
+      "source_revision_basis": "caller_supplied"
+    },
+    "profiles": [],
+    "rendered_suite": {
+      "digest": "sha256:07f68f1bf789d373719d9e7424ed7c2f642e07ce30c19ece1ce25918edc3e117",
+      "files": [
+        {
+          "path": "conftest.py",
+          "sha256": "sha256:de605ed4c1bce8eedc14daa061a21a6f13dab61ad713d91dacc897fbb6c6fb07"
+        },
+        {
+          "path": "l9_conformance_cases.json",
+          "sha256": "sha256:f063610bc9ee0b9bfc2faa586188d0914d6eb6dc78fd9b159c0d99ce72345674"
+        },
+        {
+          "path": "l9_conformance_eval.py",
+          "sha256": "sha256:004baaf7e72427fecf351770f59eb34310f83a918a0b573c7a5adebdf82f819f"
+        },
+        {
+          "path": "test_l9_conformance.py",
+          "sha256": "sha256:ad645da60715cee739865172f86b7486258f6cc241b27bb1431057df3d1639e1"
+        }
+      ]
+    },
+    "semantic_source_digests": [
+      {
+        "digest": "sha256:d944cd322867327198671abc6ff302d132929d2f9fde56f21fe49816b207a8d6",
+        "ref": "Quantum-L9/.github@44e02a090ea0e27f91c8fe3c245e2033ad80699f:semantics/conformance_ir.schema.yaml"
+      },
+      {
+        "digest": "sha256:8d9443ba1222171c06464af7279081e19f79be5e0ce2e172e22c08e18dff4a14",
+        "ref": "Quantum-L9/.github@44e02a090ea0e27f91c8fe3c245e2033ad80699f:semantics/fixture_ir.schema.yaml"
+      },
+      {
+        "digest": "sha256:e7182acefd2d28b25bf057b70a3c034c3be5bff22c86bc0ca919d5737a0efe7b",
+        "ref": "Quantum-L9/.github@44e02a090ea0e27f91c8fe3c245e2033ad80699f:semantics/harness_surface.schema.yaml"
+      },
+      {
+        "digest": "sha256:e777a3cb7b8d94e044934d4778045d697bcdd85ecb2ebe241e95fe60bd7141c5",
+        "ref": "Quantum-L9/.github@44e02a090ea0e27f91c8fe3c245e2033ad80699f:semantics/conformance_model.yaml"
+      },
+      {
+        "digest": "sha256:85bf7ef8e4711d2170014bcb382fbb82c1cdd98faee5c7d8ad79c18cc170257b",
+        "ref": "Quantum-L9/l9-wip@711da6842378eea88d5dace26ffa48bedd632a7b:l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/repository-spec.yaml"
+      }
+    ]
+  },
+  "observation_or_outcome": {
+    "obligations": [
+      {
+        "cases": [
+          {
+            "case_id": "state.create.commits_revision_zero",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e74a02f834ba44090a9b00f3ee244b96e5498892c82b71065b0640957a7229a0",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.commits_next_revision_with_event",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:ccd3f350e865a4cc035662d0cf21e86187c60fe2eb173f12ea55bbbc8f1bcd42",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-ATOMIC-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [],
+        "obligation_id": "obl.STATE-DOMAIN-001",
+        "reason": "IR disposition unresolved (unresolved: verification class static_inspection is never proven by fixture replay)",
+        "required": true,
+        "verdict": "unresolved",
+        "verification_class": "static_inspection"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.transition.concurrent_cas_writers_exactly_one_commits",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:638b42939dc19da36bac36d1652c9d5ecc1bf9d99d7d45c92cc176d303d0addb",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.acquires_first_fence",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:570b274c5e8c869deb82e47b0f9b740b97cd216ded67340e96b9d30f515fd9ec",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.active_claim_requires_exact_fence",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:474438dca780f4e368caaa83470bb435a321a96d86b532910691c08fc81bc04b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.foreign_holder_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:94918b8bedd1951e901704c456eb97bc3894b4eb1524d1ef330c036c6dbb9792",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.second_claim_while_active_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:d5e2e126009ad1a07c7f6f0eb6e97f720e0dba8482b67e15cccd71ef019d0c38",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.lease_reassignment_increments_fence",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:7f49f3c3234ef41125376517c21d8a0efb8d3c35c2ec6ec19157a169ecd75e3c",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.expired_claim_cannot_authorize_writes",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:1a3db43f24039255af97037ff66e2739f77ba413a100a680c30f15d63ade4dd6",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.renew.extends_lease_with_same_fence",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:99a72549932121ad73294c4228e60bcc8373f38abecf0233f5e0c42b123a9b95",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.renew.stale_fence_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:4f42043292cf77228e3baaeef41495a4289a15e7c824d64ac51c8154dc79d9d3",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.renew.expired_claim_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:7d00f3c43ba25cf9eedbb2a6307a920271e33a16ee0210bd1d50386a1a1391fe",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.release.ends_claim_and_fence_stays_monotonic",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:bea13c2e1a4c29e31738f117907b867518916dfc34e6faa2cf27ac2eeb5d3b6d",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.release.expired_claim_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:fc5caa5cec09b2b08d64e08cc57b0b5feca3f3c21cd5051841269b3c8f769cb5",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.tombstoned_object_is_claimable_and_fences_restore",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:0e171d5202fd4339626560fcf251a4f47103b642c22b3b5629f036f98a14161f",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-FENCE-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [],
+        "obligation_id": "obl.STATE-IDEMP-001",
+        "reason": "IR disposition unresolved (unresolved: a witness case is unresolved or none is executable)",
+        "required": true,
+        "verdict": "unresolved",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.commits_revision_zero",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:01da28551ad64bff440d91fd3081c1d32d976eeabe8c3502ad5eefe08dc13bf9",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.get.current_and_named_revisions",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:1c852dddd2d1170542c140def13b6938ff7f37e4527ade9a1a73ecd264fe3dc7",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.commits_next_revision_with_event",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:27ab9e2f9664cef889398f493372e76730e4506c03335d354dd7908adc2afa21",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.stale_revision_is_sticky_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:1f33537a9d451a03ef82d92b1cd3e52c08c6c659df6d4d8f3ddb2e6946e58e87",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.state_digest_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:3b0c301333216a71b2a376352f797d4a44cc66d3b68e4bbe082f22e00220be9a",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.concurrent_cas_writers_exactly_one_commits",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:1dcde5bfcc1c754935dcfb5b2cff54de5d04be9e75ff7d59062200bff46fcd2b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.stale_expected_revision_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:3c4435184656c7a7465abc63c327a379caa745a140fb6c7cf8418703941d5e15",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.tombstone.suppresses_current_read_only",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:f0d1408cff5afbbfbaea0ea70bf87b81d25ef6fd38d7e7c7175451974a9f4597",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.tombstone.object_identity_is_not_reusable",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:a3254e8a83a269cd854a091e9e64f61b2ba132fe6d1d3c4efae41b7279873019",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.restore.creates_new_active_revision",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:353749eb6bffe2f14f27d08962bf7837f79fea19b7db27e05844de61e5f0595c",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.history.bounded_paging",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:5200d5b6d2e8a40f864fd9026950051c2cbf6741297e189928b899dd34af36e7",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.history.retention_gap_is_history_unavailable",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:ab56d5726ebbc58ba198c539e53a1793ad432687a88b330d154932111ca1e7a7",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-REV-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.unadmitted_schema_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:07a076896d6d927327173e0ff0357f9e920d4d5665f5c43159cac2495f913a5a",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.schema_digest_mismatch_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:04fa76cb5aad693f2d6db19a1dade224a3f8a2e84fc7b1735454a554390a0841",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:cd80c84e42aac8b587d5893c6d84fcfefebc87a284e3dd0b06a7c64f0b3a52bb",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.schema_rejected_payload_is_durable_refusal",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e4c53375e9c609467ff883cbaeb87af6c8b96f20c09517bf672b40ea441aa7f2",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.schema_rejected_payload_is_durable_refusal",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:24b1faa18f64907fcf2039c0e85e1a37ffd18d5759dd5d49d9c69eda79d4f494",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-SCHEMA-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [],
+        "obligation_id": "obl.STATE-PROVIDER-001",
+        "reason": "IR disposition unresolved (unresolved: verification class static_inspection is never proven by fixture replay)",
+        "required": true,
+        "verdict": "unresolved",
+        "verification_class": "static_inspection"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.commits_revision_zero",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e25bdfd1c22cc92f122657c4c4858ab8e52f5bb81a2f8bd6a636a9706b7c4a28",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.commits_next_revision_with_event",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:731953dca7177a4071fe30c580ed0983c5454ec1a896bc37660b36d9c8dbf3ed",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.list.then_events_cold_resume",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:95c7dd0e5f85d84a954d082b242b2d28fb08d3e6d4ba63ecf8206122ac29f4d3",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.total_order_within_scope",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:8ac1c18ac87f0cbca8224af31107d6a4c136954e458ac4d0d211e0e65b191d69",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.bounded_paging_always_returns_cursor",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:d884fffa61629d5dc68235bd430db5eb75905d70db27449242fe84586a42e341",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.ack.commits_checkpoint_used_for_resume",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:df9c10f278165b6382b6810e09e4a34e02f922fba39c384df86fbf98029a5606",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.retention_gap_requires_cold_resync",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:066285b892618ca282b29ccf55d1a91586538dfc80d29ecf116b61e225e394e0",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.new_consumer_starts_at_retained_floor",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:0f7c9c0c094b4e89c2869bf9079f3973d639b528445faa224029cb4fb774c25d",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.ack.regression_is_nondurable_problem",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:68738629ef5acd182037a839a3f8e2634a39cb9746b3b6e37c14cedd89bcd043",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-JOURNAL-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.list.then_events_cold_resume",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:729d7c9b6a4ad5a143269a2d64fb5ccd3b582f43b859addcebac0c70670809f0",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.list.cursor_filter_must_match",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:8653d3c975290c7b8fbc2feaea77173e79c4db6bad51ec5029a7e38920291350",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.bounded_paging_always_returns_cursor",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:411ce125d263d104bd80277593320b75ad404e795dd475b5fa7343c6c4be7670",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.cursor_is_scope_bound",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:35f445b6572ce4eb04e0cfbcde14499ec373aee082953447fb5d955c49d72588",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.cursor_is_consumer_bound",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:614a8dc88a9564b02000e32e31d67d35aa15e87774edfd85895546b9f9d794cd",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.tampered_cursor_is_invalid",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:0436577b1075d454a0160e6ac3321bfd9aeb72d6b9c5cd7c83767a686e3a1603",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.foreign_consumer_requires_authorization",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:ad97eaa8f362cbf3c4c895018444e4d72f7f49587b2d29cdec761cfb47985c7a",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.ack.commits_checkpoint_used_for_resume",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:db435159fc0ba0890d3b494e91e12285b051b439323e50c94a27c05b14a5cea6",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.history.bounded_paging",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:9706c40b903dece234979f419610f6f8c3a42d88c0965fe972524f2e980d222a",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.retention_gap_requires_cold_resync",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:fe48f6ada82921c62f1e35c7f9ef4de4778d193e808fc2d18fa2644b7539d510",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-CURSOR-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.claim.acquires_first_fence",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:578a7a8b65f0450706c6a4c03a5c027498d79e317a7fcb82593a7b098fce44bd",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.active_claim_requires_exact_fence",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:bd0271b5594c7634711e2946e179d9d90aee1b69074f8663d63365d25ac31741",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.foreign_holder_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:b64392259ce502f4af5ee37ad43de224a4fabccd44abec934da57f57d3a57fa2",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.expired_claim_cannot_authorize_writes",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:13ed61bae60cafe37d36f6a0ac007d93043697d3515ba44b2ab76937c68a6d8e",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.holder_without_scope_authorization_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:f0656ee932286efe4dc0618306a09739d3b50bb2e213879d00ecaa584c148ba0",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.release.ends_claim_and_fence_stays_monotonic",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:bf7b16b544bb8feb3466a0eb82c1931c8a9c980233af5ca2a8065c84c4ca2b00",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.release.foreign_holder_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:65b6986be03e4efc0b8010e6b204cd435d3670e54017528ab4a03271ca5c34a3",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.tombstoned_object_is_claimable_and_fences_restore",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:5db668fcfadf87644858acf2d96d3964cec9d329e3900458987440a181e9bafa",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-CLAIM-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.tenants_are_isolated",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:4112224a02f45e5cd4ca897ab1172da5c22307e191954669b3f35d0668abebd4",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.holder_without_scope_authorization_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:32b604ee410ae2bd15408e6398d4bb2f56ae2959867fe815f249bb38f4f58e19",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.cursor_is_scope_bound",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:5ef41578b03d31b0dedd38d97d413c87e251cf861ddefe249b51dc73a96b06a9",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.foreign_consumer_requires_authorization",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:207357d6d69c252504271210a84d64aca31bb55bd8987cade85de5961eb487d8",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.operation.inspect.authorization_precedes_replay",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:8be04bb1146a6f05438413f37ca464b284f27b0ca7de4c341cd7acf6157fd217",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-TENANT-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.get.current_and_named_revisions",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:0b66532fd86f5f49198efa321a769a8f9f3d8a161c10bd7d2b3ca0ef43736139",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.read.observations_create_no_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:7888e0c691135a9afc842bdd5dcedb8d74d2936c6db4f54a205cf2d9d89363ea",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-READ-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.claim.lease_reassignment_increments_fence",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:baadb1a198b8a7f964d5ec3ffcaa363bea9f3842951efd901dab69b929886853",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.expired_claim_cannot_authorize_writes",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:914e4734b0be21ba24c9b41504aebbc8e81b2711ce34fab9216895fd16c5eb28",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.renew.expired_claim_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:6f96b1a41ff11d89ec2fc9bab176c07b83135a2eb3918fa72afefdec8fb0e935",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.release.expired_claim_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:19b436b33ad2978926990120b442bffcf5b2a9f1b85c6458a995d6e74ea13d70",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.history.retention_gap_is_history_unavailable",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:30b039476bb06f747f57245c82b394d493d509ebb36210fd55178f8972aa68c7",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.retention_gap_requires_cold_resync",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:691dd57d33e5d676e3f447773b68d407764fe1899b15a55e2b778c14adf61491",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.new_consumer_starts_at_retained_floor",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:6af9bf5aee1f2a5ef20ff68cb81f17a9f4aa76e11d607de9e45835957d73eb9c",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-RETENTION-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.ambiguous_commit_reconciles_by_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:b3ab56bcfbdcaff305f62f719680ceb84aacd7f3db0b2f287cafcf89b22fee75",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.operation.inspect.reports_found_and_not_found",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:2f02c65895ab930c00ae55282d960bbb0ddf887eb1ddd35d800b5af5b91cfd05",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-RECOVERY-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.events.total_order_within_scope",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:000a70129b40f0844d2e96b7f84353856b530a4744a1b6ece0e34768d3fec0db",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-EVENT-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [],
+        "obligation_id": "obl.STATE-GATE-001",
+        "reason": "IR disposition unresolved (unresolved: a witness case is unresolved or none is executable)",
+        "required": true,
+        "verdict": "unresolved",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [],
+        "obligation_id": "obl.STATE-BIRTH-001",
+        "reason": "IR disposition unresolved (unresolved: verification class static_inspection is never proven by fixture replay)",
+        "required": true,
+        "verdict": "unresolved",
+        "verification_class": "static_inspection"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.list.then_events_cold_resume",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:19e3a8e2d9dc7f17ffabf936b57c612b76f450b46855930afe02d585f058da98",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-EVENT-OPT-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.precommit_deadline_has_no_durable_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:a25098bcbee294302aa6ce7ef966e27d0182aaccdeda0f11eaf71acc7d2be1b4",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.get.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:1c79b48a4fa4c539b1fcc6a2bd6e3aa0ebbf65d2e695426d6151016bb18ef6c8",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.list.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:abf43c8c9ecac6da977867d436ce2d5863ba79f9595199170f13a44df4a1502b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:c407d704fc4355ee035e2be2deb7bd635005d24e8be320f0dd1d7f12f3206a8b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.history.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:42ff3a2f00d2ccf03bfb09340b85294d71151faeab48e2665eecfaf170149cf9",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.operation.inspect.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:921b0da6b1ad0a28f0f0f0262d41fc3f77cda421cc07a3dd2484b879fd666278",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-BUDGET-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [],
+        "obligation_id": "obl.STATE-BUDGET-002",
+        "reason": "IR disposition unresolved (unresolved: verification class external_runtime_evidence is never proven by fixture replay)",
+        "required": true,
+        "verdict": "unresolved",
+        "verification_class": "external_runtime_evidence"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.exact_replay_returns_original_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e0f715e005766c371875777a9c88f2bc53065641eaf75a704aa9865718fbc9b9",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.ambiguous_commit_reconciles_by_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:a0bd4e44d6910736be32d40c416699e7e8e84d5c426706ab2c263feae7db5df2",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.concurrent_cas_writers_exactly_one_commits",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e568d7893836032f8041d6ae63ba2d89edac351670332f29ec2ee2195b3a47c9",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.operation.inspect.reports_found_and_not_found",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:63c32aefa423eb6e975dfdff98b812658afda81ea5970b8dd227f98f302fb8d5",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.operation.inspect.cross_principal_visibility",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:bb3d852f14ba09804dd9f08763f794fe1590ae558e7532a408d94db0d41b3e6c",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-OUTCOME-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.commits_revision_zero",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e932e8d08565c325292487277c101cb5a2a08132b39c267c850ea1eba7dc5304",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.existing_object_is_sticky_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:f2481bfd7f14ed6d6f86da546288ed6bf09cc500a5a1418a048fce882d836f5c",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.unadmitted_schema_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:41502607a71903b6469eb034475701409f14cba860ffe70264135f5284a553c4",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.unadmitted_retention_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:87aa9f7e020b94a2d22fa3ab1a541f03ccde9b70fa95df02f9bb20a6e27c7dce",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.stale_revision_is_sticky_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:6e875203a8e2c4b583fd15bb20b7264b382e5871ecdcfe127e0ef613c1a6c7da",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.state_digest_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:2bc0af701183919a078c85075b5fe42663168a00275bab1c659443d490a8ea0b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:f418b452913165ed86df589ab7555a9efec5aa963ba5af997446739212b8fc45",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.missing_object_is_durable_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:2ae3aef2b02beb569c452d1bf969ea7eebaf1ae3423b9b80833e8c52c833abd7",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.missing_object_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:87457bd7691ef1f46ab7c5097d2e122a29526120d2c2e6f2ea40de09fc8699a3",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.schema_rejected_payload_is_durable_refusal",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:6a61910fa291bc36953a3969cfecc2a9b67e78b7b0823efa07ec057c97898953",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.schema_rejected_payload_is_durable_refusal",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:fca883739e184d7a17f6caadadc53e4b7961454638515b85fc771d62a1c98dc1",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-OUTCOME-002",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.exact_replay_returns_original_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:d24744015f9342598e05f27f91cc884dc90385aec7e95ce3e83661eb63a0b836",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.existing_object_is_sticky_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:6d843c5d89885ecfc57b82145a044e0c9114cf3b2148e49a6ad85dff4c0e8d3b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.stale_revision_is_sticky_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:8183f0f388a945e75d83ee2b2e6357e3bfaf2ab38d7c45c599d0976c979d4335",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.changed_world_retry_needs_new_operation",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:4b4f2f49ff988668a83dabff252141a10f1c9cc11702a08363bc60b028c3d52f",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:5363b6a7249db04e2e1495eb1342db57c9451f713dd45eddb54a91fe5eae6dae",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.schema_rejected_payload_is_durable_refusal",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e969a9c9f75bdeea4d55f7c7d6c2f3487aedd16bafd569c1b9fcb9bbd827eef8",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-OUTCOME-003",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.ambiguous_commit_reconciles_by_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:a1264a59ea38992658edbf77d716436aeb1ab305c709a913e6535da72e6b95cd",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-AMBIGUITY-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [],
+        "obligation_id": "obl.STATE-PROBLEM-001",
+        "reason": "IR disposition unresolved (unresolved: a witness case is unresolved or none is executable)",
+        "required": true,
+        "verdict": "unresolved",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.malformed_request_is_nondurable_problem",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:0913168511a685f09cadf925c46edf75d6ac9728839ce2024be882f527fac58f",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.precommit_deadline_has_no_durable_receipt",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:8739d86fad8783e7651fec3981cf7acd17efbc98e29daaa323073955325eda1b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.create.storage_unavailable_precommit_is_same_operation_retry",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:c2d7d09e6b40193c4ef4c0e6885d959b1194fe482cbfaa85fe42dabbfdfa0eb1",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.get.storage_unavailable_read_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:15f22989148c8c1ddb08ad9a440e31bdfb6d4968ca4b2ba9856970637080faee",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.get.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:267f093fcd6c1477c20dd53ca7ca567176ea71f276769a790bdf24280e341b4b",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.list.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:995ac77d3a9f4969239e69e9a23ee2bb294106215ae882a5c89e96a90b13dbd1",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.events.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:690fc63d3bc136640740c7df6dfdb366472ee3c2c5c4e572ad533de3287532a5",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.history.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:b624a78f258f024f972384eb0d9d43324764a204da0fe39ba0ebacff05fcd5cb",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.operation.inspect.read_deadline_is_retry_later",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:9c96d47bd29a544bf5795b7abb6b5d6ac57df81e64ec5aa99421e9d62dccbacf",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-RETRY-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.existing_object_is_sticky_conflict",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:9301c26d603fb6e2ed22f42618bffee19f87b12f3c0b0b0b0e308646542b2949",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.transition.changed_world_retry_needs_new_operation",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:96937e2b666d7888c8cc01f4306b21bead961107cb733d4e617c9a8d7907dd44",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-RETRY-002",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.transition.tombstoned_object_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:05cf9fe67eca0eed5bb7c48cfe8dd8587104851986af4697be4b19d3abc2997f",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.tombstone.suppresses_current_read_only",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:41dc60285bc77d7233e2e42eab51b0ffe67b8d84ab207e048cd1a8b94b000774",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.tombstone.already_tombstoned_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:c1d35bd158d2956309f9781abc0c860c5ccce5b1fe9d89991bdfdc6cd1b4f607",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.tombstone.object_identity_is_not_reusable",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:9c327a3a609fe2c4ec504a88c7a76480e00bc93955e46d3556bc1332345ab101",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.restore.creates_new_active_revision",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:86309ebd38fe854ac389d5df9b686ceb2fdebdfcbdc009bf2838d5f2e77fc12c",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.erase.scrubs_payload_preserves_identity_and_replay",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:146c50f9484f9a81fedb335f064eb1bf0f52c1ac11456ef88edf5e2904d4a1ae",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-LIFECYCLE-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.restore.creates_new_active_revision",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:a6ac6f344a667803caaeccd3b51bf45875fee68f5410a2bdd00c33b8952a4693",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.restore.active_object_conflicts",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:e59cd5f7100f5e7bc09fc572a5979f1344a77ca45407ccd0d5b56644c8df01d4",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.restore.source_must_be_retained_prior_revision",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:9c01a99626e4c33cfc73145dcd62202c88e62e708e95cff8e63a03b3b86a89cb",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.claim.tombstoned_object_is_claimable_and_fences_restore",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:0f5af7c7c191811b15ffcc2cc016e91c392da607bde62367c07f9a4dd4828225",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-RESTORE-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.erase.scrubs_payload_preserves_identity_and_replay",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:5e9a3e255ce54bcfdffdb128cae1b076cf3d5b49726c6cc885a351701df578ba",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-ERASE-001",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      },
+      {
+        "cases": [
+          {
+            "case_id": "state.create.unadmitted_retention_is_refused",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:5fb1dbfbabb952ba4ee3e7847edef215e5e9259948433f2b4e30231208d9af2f",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.erase.scrubs_payload_preserves_identity_and_replay",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:3be99e51471c7c75f5e515cd4220ef6b0cc0c23dc29864ce375a846180eda719",
+            "verdict": "pass"
+          },
+          {
+            "case_id": "state.erase.is_not_a_gate_action",
+            "detail": "outcome record: pass",
+            "record_digest": "sha256:9a59fea45a3db503ef1582e5077fbcb5f7b42cdd82aadc44811b7c163e79534d",
+            "verdict": "pass"
+          }
+        ],
+        "obligation_id": "obl.STATE-RETENTION-002",
+        "required": true,
+        "verdict": "pass",
+        "verification_class": "fixture_replay"
+      }
+    ],
+    "overall_verdict": "unresolved"
+  },
+  "producer_identity": {
+    "code_digest": "sha256:a1cadff7326a114663581c9a81cfe14292db588ec138afcc79a6becd4363f7e9",
+    "runner": "l9-conformance/runner",
+    "version": "0.1.0"
+  },
+  "receipt_digest": "sha256:970cb0ae9f403930629fe6e5e984d9f77abe1b2a594f4571eb63ebde336f2060",
+  "receipt_identity": "l9-conformance/receipt:sha256:970cb0ae9f403930629fe6e5e984d9f77abe1b2a594f4571eb63ebde336f2060",
+  "receipt_type": "l9.receipt/conformance@1",
+  "schema": "l9-conformance/conformance-receipt@1",
+  "verification_basis": {
+    "case_records": [
+      {
+        "case_id": "state.create.commits_revision_zero",
+        "exit_code": 0,
+        "junit_digest": "sha256:e74a02f834ba44090a9b00f3ee244b96e5498892c82b71065b0640957a7229a0"
+      },
+      {
+        "case_id": "state.transition.commits_next_revision_with_event",
+        "exit_code": 0,
+        "junit_digest": "sha256:ccd3f350e865a4cc035662d0cf21e86187c60fe2eb173f12ea55bbbc8f1bcd42"
+      },
+      {
+        "case_id": "state.transition.concurrent_cas_writers_exactly_one_commits",
+        "exit_code": 0,
+        "junit_digest": "sha256:638b42939dc19da36bac36d1652c9d5ecc1bf9d99d7d45c92cc176d303d0addb"
+      },
+      {
+        "case_id": "state.claim.acquires_first_fence",
+        "exit_code": 0,
+        "junit_digest": "sha256:570b274c5e8c869deb82e47b0f9b740b97cd216ded67340e96b9d30f515fd9ec"
+      },
+      {
+        "case_id": "state.claim.active_claim_requires_exact_fence",
+        "exit_code": 0,
+        "junit_digest": "sha256:474438dca780f4e368caaa83470bb435a321a96d86b532910691c08fc81bc04b"
+      },
+      {
+        "case_id": "state.claim.foreign_holder_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:94918b8bedd1951e901704c456eb97bc3894b4eb1524d1ef330c036c6dbb9792"
+      },
+      {
+        "case_id": "state.claim.second_claim_while_active_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:d5e2e126009ad1a07c7f6f0eb6e97f720e0dba8482b67e15cccd71ef019d0c38"
+      },
+      {
+        "case_id": "state.claim.lease_reassignment_increments_fence",
+        "exit_code": 0,
+        "junit_digest": "sha256:7f49f3c3234ef41125376517c21d8a0efb8d3c35c2ec6ec19157a169ecd75e3c"
+      },
+      {
+        "case_id": "state.claim.expired_claim_cannot_authorize_writes",
+        "exit_code": 0,
+        "junit_digest": "sha256:1a3db43f24039255af97037ff66e2739f77ba413a100a680c30f15d63ade4dd6"
+      },
+      {
+        "case_id": "state.renew.extends_lease_with_same_fence",
+        "exit_code": 0,
+        "junit_digest": "sha256:99a72549932121ad73294c4228e60bcc8373f38abecf0233f5e0c42b123a9b95"
+      },
+      {
+        "case_id": "state.renew.stale_fence_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:4f42043292cf77228e3baaeef41495a4289a15e7c824d64ac51c8154dc79d9d3"
+      },
+      {
+        "case_id": "state.renew.expired_claim_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:7d00f3c43ba25cf9eedbb2a6307a920271e33a16ee0210bd1d50386a1a1391fe"
+      },
+      {
+        "case_id": "state.release.ends_claim_and_fence_stays_monotonic",
+        "exit_code": 0,
+        "junit_digest": "sha256:bea13c2e1a4c29e31738f117907b867518916dfc34e6faa2cf27ac2eeb5d3b6d"
+      },
+      {
+        "case_id": "state.release.expired_claim_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:fc5caa5cec09b2b08d64e08cc57b0b5feca3f3c21cd5051841269b3c8f769cb5"
+      },
+      {
+        "case_id": "state.claim.tombstoned_object_is_claimable_and_fences_restore",
+        "exit_code": 0,
+        "junit_digest": "sha256:0e171d5202fd4339626560fcf251a4f47103b642c22b3b5629f036f98a14161f"
+      },
+      {
+        "case_id": "state.create.commits_revision_zero",
+        "exit_code": 0,
+        "junit_digest": "sha256:01da28551ad64bff440d91fd3081c1d32d976eeabe8c3502ad5eefe08dc13bf9"
+      },
+      {
+        "case_id": "state.get.current_and_named_revisions",
+        "exit_code": 0,
+        "junit_digest": "sha256:1c852dddd2d1170542c140def13b6938ff7f37e4527ade9a1a73ecd264fe3dc7"
+      },
+      {
+        "case_id": "state.transition.commits_next_revision_with_event",
+        "exit_code": 0,
+        "junit_digest": "sha256:27ab9e2f9664cef889398f493372e76730e4506c03335d354dd7908adc2afa21"
+      },
+      {
+        "case_id": "state.transition.stale_revision_is_sticky_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:1f33537a9d451a03ef82d92b1cd3e52c08c6c659df6d4d8f3ddb2e6946e58e87"
+      },
+      {
+        "case_id": "state.transition.state_digest_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:3b0c301333216a71b2a376352f797d4a44cc66d3b68e4bbe082f22e00220be9a"
+      },
+      {
+        "case_id": "state.transition.concurrent_cas_writers_exactly_one_commits",
+        "exit_code": 0,
+        "junit_digest": "sha256:1dcde5bfcc1c754935dcfb5b2cff54de5d04be9e75ff7d59062200bff46fcd2b"
+      },
+      {
+        "case_id": "state.claim.stale_expected_revision_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:3c4435184656c7a7465abc63c327a379caa745a140fb6c7cf8418703941d5e15"
+      },
+      {
+        "case_id": "state.tombstone.suppresses_current_read_only",
+        "exit_code": 0,
+        "junit_digest": "sha256:f0d1408cff5afbbfbaea0ea70bf87b81d25ef6fd38d7e7c7175451974a9f4597"
+      },
+      {
+        "case_id": "state.tombstone.object_identity_is_not_reusable",
+        "exit_code": 0,
+        "junit_digest": "sha256:a3254e8a83a269cd854a091e9e64f61b2ba132fe6d1d3c4efae41b7279873019"
+      },
+      {
+        "case_id": "state.restore.creates_new_active_revision",
+        "exit_code": 0,
+        "junit_digest": "sha256:353749eb6bffe2f14f27d08962bf7837f79fea19b7db27e05844de61e5f0595c"
+      },
+      {
+        "case_id": "state.history.bounded_paging",
+        "exit_code": 0,
+        "junit_digest": "sha256:5200d5b6d2e8a40f864fd9026950051c2cbf6741297e189928b899dd34af36e7"
+      },
+      {
+        "case_id": "state.history.retention_gap_is_history_unavailable",
+        "exit_code": 0,
+        "junit_digest": "sha256:ab56d5726ebbc58ba198c539e53a1793ad432687a88b330d154932111ca1e7a7"
+      },
+      {
+        "case_id": "state.create.unadmitted_schema_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:07a076896d6d927327173e0ff0357f9e920d4d5665f5c43159cac2495f913a5a"
+      },
+      {
+        "case_id": "state.create.schema_digest_mismatch_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:04fa76cb5aad693f2d6db19a1dade224a3f8a2e84fc7b1735454a554390a0841"
+      },
+      {
+        "case_id": "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+        "exit_code": 0,
+        "junit_digest": "sha256:cd80c84e42aac8b587d5893c6d84fcfefebc87a284e3dd0b06a7c64f0b3a52bb"
+      },
+      {
+        "case_id": "state.create.schema_rejected_payload_is_durable_refusal",
+        "exit_code": 0,
+        "junit_digest": "sha256:e4c53375e9c609467ff883cbaeb87af6c8b96f20c09517bf672b40ea441aa7f2"
+      },
+      {
+        "case_id": "state.transition.schema_rejected_payload_is_durable_refusal",
+        "exit_code": 0,
+        "junit_digest": "sha256:24b1faa18f64907fcf2039c0e85e1a37ffd18d5759dd5d49d9c69eda79d4f494"
+      },
+      {
+        "case_id": "state.create.commits_revision_zero",
+        "exit_code": 0,
+        "junit_digest": "sha256:e25bdfd1c22cc92f122657c4c4858ab8e52f5bb81a2f8bd6a636a9706b7c4a28"
+      },
+      {
+        "case_id": "state.transition.commits_next_revision_with_event",
+        "exit_code": 0,
+        "junit_digest": "sha256:731953dca7177a4071fe30c580ed0983c5454ec1a896bc37660b36d9c8dbf3ed"
+      },
+      {
+        "case_id": "state.list.then_events_cold_resume",
+        "exit_code": 0,
+        "junit_digest": "sha256:95c7dd0e5f85d84a954d082b242b2d28fb08d3e6d4ba63ecf8206122ac29f4d3"
+      },
+      {
+        "case_id": "state.events.total_order_within_scope",
+        "exit_code": 0,
+        "junit_digest": "sha256:8ac1c18ac87f0cbca8224af31107d6a4c136954e458ac4d0d211e0e65b191d69"
+      },
+      {
+        "case_id": "state.events.bounded_paging_always_returns_cursor",
+        "exit_code": 0,
+        "junit_digest": "sha256:d884fffa61629d5dc68235bd430db5eb75905d70db27449242fe84586a42e341"
+      },
+      {
+        "case_id": "state.ack.commits_checkpoint_used_for_resume",
+        "exit_code": 0,
+        "junit_digest": "sha256:df9c10f278165b6382b6810e09e4a34e02f922fba39c384df86fbf98029a5606"
+      },
+      {
+        "case_id": "state.events.retention_gap_requires_cold_resync",
+        "exit_code": 0,
+        "junit_digest": "sha256:066285b892618ca282b29ccf55d1a91586538dfc80d29ecf116b61e225e394e0"
+      },
+      {
+        "case_id": "state.events.new_consumer_starts_at_retained_floor",
+        "exit_code": 0,
+        "junit_digest": "sha256:0f7c9c0c094b4e89c2869bf9079f3973d639b528445faa224029cb4fb774c25d"
+      },
+      {
+        "case_id": "state.ack.regression_is_nondurable_problem",
+        "exit_code": 0,
+        "junit_digest": "sha256:68738629ef5acd182037a839a3f8e2634a39cb9746b3b6e37c14cedd89bcd043"
+      },
+      {
+        "case_id": "state.list.then_events_cold_resume",
+        "exit_code": 0,
+        "junit_digest": "sha256:729d7c9b6a4ad5a143269a2d64fb5ccd3b582f43b859addcebac0c70670809f0"
+      },
+      {
+        "case_id": "state.list.cursor_filter_must_match",
+        "exit_code": 0,
+        "junit_digest": "sha256:8653d3c975290c7b8fbc2feaea77173e79c4db6bad51ec5029a7e38920291350"
+      },
+      {
+        "case_id": "state.events.bounded_paging_always_returns_cursor",
+        "exit_code": 0,
+        "junit_digest": "sha256:411ce125d263d104bd80277593320b75ad404e795dd475b5fa7343c6c4be7670"
+      },
+      {
+        "case_id": "state.events.cursor_is_scope_bound",
+        "exit_code": 0,
+        "junit_digest": "sha256:35f445b6572ce4eb04e0cfbcde14499ec373aee082953447fb5d955c49d72588"
+      },
+      {
+        "case_id": "state.events.cursor_is_consumer_bound",
+        "exit_code": 0,
+        "junit_digest": "sha256:614a8dc88a9564b02000e32e31d67d35aa15e87774edfd85895546b9f9d794cd"
+      },
+      {
+        "case_id": "state.events.tampered_cursor_is_invalid",
+        "exit_code": 0,
+        "junit_digest": "sha256:0436577b1075d454a0160e6ac3321bfd9aeb72d6b9c5cd7c83767a686e3a1603"
+      },
+      {
+        "case_id": "state.events.foreign_consumer_requires_authorization",
+        "exit_code": 0,
+        "junit_digest": "sha256:ad97eaa8f362cbf3c4c895018444e4d72f7f49587b2d29cdec761cfb47985c7a"
+      },
+      {
+        "case_id": "state.ack.commits_checkpoint_used_for_resume",
+        "exit_code": 0,
+        "junit_digest": "sha256:db435159fc0ba0890d3b494e91e12285b051b439323e50c94a27c05b14a5cea6"
+      },
+      {
+        "case_id": "state.history.bounded_paging",
+        "exit_code": 0,
+        "junit_digest": "sha256:9706c40b903dece234979f419610f6f8c3a42d88c0965fe972524f2e980d222a"
+      },
+      {
+        "case_id": "state.events.retention_gap_requires_cold_resync",
+        "exit_code": 0,
+        "junit_digest": "sha256:fe48f6ada82921c62f1e35c7f9ef4de4778d193e808fc2d18fa2644b7539d510"
+      },
+      {
+        "case_id": "state.claim.acquires_first_fence",
+        "exit_code": 0,
+        "junit_digest": "sha256:578a7a8b65f0450706c6a4c03a5c027498d79e317a7fcb82593a7b098fce44bd"
+      },
+      {
+        "case_id": "state.claim.active_claim_requires_exact_fence",
+        "exit_code": 0,
+        "junit_digest": "sha256:bd0271b5594c7634711e2946e179d9d90aee1b69074f8663d63365d25ac31741"
+      },
+      {
+        "case_id": "state.claim.foreign_holder_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:b64392259ce502f4af5ee37ad43de224a4fabccd44abec934da57f57d3a57fa2"
+      },
+      {
+        "case_id": "state.claim.expired_claim_cannot_authorize_writes",
+        "exit_code": 0,
+        "junit_digest": "sha256:13ed61bae60cafe37d36f6a0ac007d93043697d3515ba44b2ab76937c68a6d8e"
+      },
+      {
+        "case_id": "state.claim.holder_without_scope_authorization_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:f0656ee932286efe4dc0618306a09739d3b50bb2e213879d00ecaa584c148ba0"
+      },
+      {
+        "case_id": "state.release.ends_claim_and_fence_stays_monotonic",
+        "exit_code": 0,
+        "junit_digest": "sha256:bf7b16b544bb8feb3466a0eb82c1931c8a9c980233af5ca2a8065c84c4ca2b00"
+      },
+      {
+        "case_id": "state.release.foreign_holder_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:65b6986be03e4efc0b8010e6b204cd435d3670e54017528ab4a03271ca5c34a3"
+      },
+      {
+        "case_id": "state.claim.tombstoned_object_is_claimable_and_fences_restore",
+        "exit_code": 0,
+        "junit_digest": "sha256:5db668fcfadf87644858acf2d96d3964cec9d329e3900458987440a181e9bafa"
+      },
+      {
+        "case_id": "state.create.tenants_are_isolated",
+        "exit_code": 0,
+        "junit_digest": "sha256:4112224a02f45e5cd4ca897ab1172da5c22307e191954669b3f35d0668abebd4"
+      },
+      {
+        "case_id": "state.claim.holder_without_scope_authorization_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:32b604ee410ae2bd15408e6398d4bb2f56ae2959867fe815f249bb38f4f58e19"
+      },
+      {
+        "case_id": "state.events.cursor_is_scope_bound",
+        "exit_code": 0,
+        "junit_digest": "sha256:5ef41578b03d31b0dedd38d97d413c87e251cf861ddefe249b51dc73a96b06a9"
+      },
+      {
+        "case_id": "state.events.foreign_consumer_requires_authorization",
+        "exit_code": 0,
+        "junit_digest": "sha256:207357d6d69c252504271210a84d64aca31bb55bd8987cade85de5961eb487d8"
+      },
+      {
+        "case_id": "state.operation.inspect.authorization_precedes_replay",
+        "exit_code": 0,
+        "junit_digest": "sha256:8be04bb1146a6f05438413f37ca464b284f27b0ca7de4c341cd7acf6157fd217"
+      },
+      {
+        "case_id": "state.get.current_and_named_revisions",
+        "exit_code": 0,
+        "junit_digest": "sha256:0b66532fd86f5f49198efa321a769a8f9f3d8a161c10bd7d2b3ca0ef43736139"
+      },
+      {
+        "case_id": "state.read.observations_create_no_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:7888e0c691135a9afc842bdd5dcedb8d74d2936c6db4f54a205cf2d9d89363ea"
+      },
+      {
+        "case_id": "state.claim.lease_reassignment_increments_fence",
+        "exit_code": 0,
+        "junit_digest": "sha256:baadb1a198b8a7f964d5ec3ffcaa363bea9f3842951efd901dab69b929886853"
+      },
+      {
+        "case_id": "state.claim.expired_claim_cannot_authorize_writes",
+        "exit_code": 0,
+        "junit_digest": "sha256:914e4734b0be21ba24c9b41504aebbc8e81b2711ce34fab9216895fd16c5eb28"
+      },
+      {
+        "case_id": "state.renew.expired_claim_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:6f96b1a41ff11d89ec2fc9bab176c07b83135a2eb3918fa72afefdec8fb0e935"
+      },
+      {
+        "case_id": "state.release.expired_claim_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:19b436b33ad2978926990120b442bffcf5b2a9f1b85c6458a995d6e74ea13d70"
+      },
+      {
+        "case_id": "state.history.retention_gap_is_history_unavailable",
+        "exit_code": 0,
+        "junit_digest": "sha256:30b039476bb06f747f57245c82b394d493d509ebb36210fd55178f8972aa68c7"
+      },
+      {
+        "case_id": "state.events.retention_gap_requires_cold_resync",
+        "exit_code": 0,
+        "junit_digest": "sha256:691dd57d33e5d676e3f447773b68d407764fe1899b15a55e2b778c14adf61491"
+      },
+      {
+        "case_id": "state.events.new_consumer_starts_at_retained_floor",
+        "exit_code": 0,
+        "junit_digest": "sha256:6af9bf5aee1f2a5ef20ff68cb81f17a9f4aa76e11d607de9e45835957d73eb9c"
+      },
+      {
+        "case_id": "state.create.ambiguous_commit_reconciles_by_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:b3ab56bcfbdcaff305f62f719680ceb84aacd7f3db0b2f287cafcf89b22fee75"
+      },
+      {
+        "case_id": "state.operation.inspect.reports_found_and_not_found",
+        "exit_code": 0,
+        "junit_digest": "sha256:2f02c65895ab930c00ae55282d960bbb0ddf887eb1ddd35d800b5af5b91cfd05"
+      },
+      {
+        "case_id": "state.events.total_order_within_scope",
+        "exit_code": 0,
+        "junit_digest": "sha256:000a70129b40f0844d2e96b7f84353856b530a4744a1b6ece0e34768d3fec0db"
+      },
+      {
+        "case_id": "state.list.then_events_cold_resume",
+        "exit_code": 0,
+        "junit_digest": "sha256:19e3a8e2d9dc7f17ffabf936b57c612b76f450b46855930afe02d585f058da98"
+      },
+      {
+        "case_id": "state.create.precommit_deadline_has_no_durable_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:a25098bcbee294302aa6ce7ef966e27d0182aaccdeda0f11eaf71acc7d2be1b4"
+      },
+      {
+        "case_id": "state.get.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:1c79b48a4fa4c539b1fcc6a2bd6e3aa0ebbf65d2e695426d6151016bb18ef6c8"
+      },
+      {
+        "case_id": "state.list.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:abf43c8c9ecac6da977867d436ce2d5863ba79f9595199170f13a44df4a1502b"
+      },
+      {
+        "case_id": "state.events.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:c407d704fc4355ee035e2be2deb7bd635005d24e8be320f0dd1d7f12f3206a8b"
+      },
+      {
+        "case_id": "state.history.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:42ff3a2f00d2ccf03bfb09340b85294d71151faeab48e2665eecfaf170149cf9"
+      },
+      {
+        "case_id": "state.operation.inspect.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:921b0da6b1ad0a28f0f0f0262d41fc3f77cda421cc07a3dd2484b879fd666278"
+      },
+      {
+        "case_id": "state.create.exact_replay_returns_original_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:e0f715e005766c371875777a9c88f2bc53065641eaf75a704aa9865718fbc9b9"
+      },
+      {
+        "case_id": "state.create.ambiguous_commit_reconciles_by_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:a0bd4e44d6910736be32d40c416699e7e8e84d5c426706ab2c263feae7db5df2"
+      },
+      {
+        "case_id": "state.transition.concurrent_cas_writers_exactly_one_commits",
+        "exit_code": 0,
+        "junit_digest": "sha256:e568d7893836032f8041d6ae63ba2d89edac351670332f29ec2ee2195b3a47c9"
+      },
+      {
+        "case_id": "state.operation.inspect.reports_found_and_not_found",
+        "exit_code": 0,
+        "junit_digest": "sha256:63c32aefa423eb6e975dfdff98b812658afda81ea5970b8dd227f98f302fb8d5"
+      },
+      {
+        "case_id": "state.operation.inspect.cross_principal_visibility",
+        "exit_code": 0,
+        "junit_digest": "sha256:bb3d852f14ba09804dd9f08763f794fe1590ae558e7532a408d94db0d41b3e6c"
+      },
+      {
+        "case_id": "state.create.commits_revision_zero",
+        "exit_code": 0,
+        "junit_digest": "sha256:e932e8d08565c325292487277c101cb5a2a08132b39c267c850ea1eba7dc5304"
+      },
+      {
+        "case_id": "state.create.existing_object_is_sticky_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:f2481bfd7f14ed6d6f86da546288ed6bf09cc500a5a1418a048fce882d836f5c"
+      },
+      {
+        "case_id": "state.create.unadmitted_schema_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:41502607a71903b6469eb034475701409f14cba860ffe70264135f5284a553c4"
+      },
+      {
+        "case_id": "state.create.unadmitted_retention_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:87aa9f7e020b94a2d22fa3ab1a541f03ccde9b70fa95df02f9bb20a6e27c7dce"
+      },
+      {
+        "case_id": "state.transition.stale_revision_is_sticky_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:6e875203a8e2c4b583fd15bb20b7264b382e5871ecdcfe127e0ef613c1a6c7da"
+      },
+      {
+        "case_id": "state.transition.state_digest_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:2bc0af701183919a078c85075b5fe42663168a00275bab1c659443d490a8ea0b"
+      },
+      {
+        "case_id": "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+        "exit_code": 0,
+        "junit_digest": "sha256:f418b452913165ed86df589ab7555a9efec5aa963ba5af997446739212b8fc45"
+      },
+      {
+        "case_id": "state.transition.missing_object_is_durable_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:2ae3aef2b02beb569c452d1bf969ea7eebaf1ae3423b9b80833e8c52c833abd7"
+      },
+      {
+        "case_id": "state.claim.missing_object_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:87457bd7691ef1f46ab7c5097d2e122a29526120d2c2e6f2ea40de09fc8699a3"
+      },
+      {
+        "case_id": "state.create.schema_rejected_payload_is_durable_refusal",
+        "exit_code": 0,
+        "junit_digest": "sha256:6a61910fa291bc36953a3969cfecc2a9b67e78b7b0823efa07ec057c97898953"
+      },
+      {
+        "case_id": "state.transition.schema_rejected_payload_is_durable_refusal",
+        "exit_code": 0,
+        "junit_digest": "sha256:fca883739e184d7a17f6caadadc53e4b7961454638515b85fc771d62a1c98dc1"
+      },
+      {
+        "case_id": "state.create.exact_replay_returns_original_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:d24744015f9342598e05f27f91cc884dc90385aec7e95ce3e83661eb63a0b836"
+      },
+      {
+        "case_id": "state.create.existing_object_is_sticky_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:6d843c5d89885ecfc57b82145a044e0c9114cf3b2148e49a6ad85dff4c0e8d3b"
+      },
+      {
+        "case_id": "state.transition.stale_revision_is_sticky_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:8183f0f388a945e75d83ee2b2e6357e3bfaf2ab38d7c45c599d0976c979d4335"
+      },
+      {
+        "case_id": "state.transition.changed_world_retry_needs_new_operation",
+        "exit_code": 0,
+        "junit_digest": "sha256:4b4f2f49ff988668a83dabff252141a10f1c9cc11702a08363bc60b028c3d52f"
+      },
+      {
+        "case_id": "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+        "exit_code": 0,
+        "junit_digest": "sha256:5363b6a7249db04e2e1495eb1342db57c9451f713dd45eddb54a91fe5eae6dae"
+      },
+      {
+        "case_id": "state.create.schema_rejected_payload_is_durable_refusal",
+        "exit_code": 0,
+        "junit_digest": "sha256:e969a9c9f75bdeea4d55f7c7d6c2f3487aedd16bafd569c1b9fcb9bbd827eef8"
+      },
+      {
+        "case_id": "state.create.ambiguous_commit_reconciles_by_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:a1264a59ea38992658edbf77d716436aeb1ab305c709a913e6535da72e6b95cd"
+      },
+      {
+        "case_id": "state.create.malformed_request_is_nondurable_problem",
+        "exit_code": 0,
+        "junit_digest": "sha256:0913168511a685f09cadf925c46edf75d6ac9728839ce2024be882f527fac58f"
+      },
+      {
+        "case_id": "state.create.precommit_deadline_has_no_durable_receipt",
+        "exit_code": 0,
+        "junit_digest": "sha256:8739d86fad8783e7651fec3981cf7acd17efbc98e29daaa323073955325eda1b"
+      },
+      {
+        "case_id": "state.create.storage_unavailable_precommit_is_same_operation_retry",
+        "exit_code": 0,
+        "junit_digest": "sha256:c2d7d09e6b40193c4ef4c0e6885d959b1194fe482cbfaa85fe42dabbfdfa0eb1"
+      },
+      {
+        "case_id": "state.get.storage_unavailable_read_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:15f22989148c8c1ddb08ad9a440e31bdfb6d4968ca4b2ba9856970637080faee"
+      },
+      {
+        "case_id": "state.get.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:267f093fcd6c1477c20dd53ca7ca567176ea71f276769a790bdf24280e341b4b"
+      },
+      {
+        "case_id": "state.list.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:995ac77d3a9f4969239e69e9a23ee2bb294106215ae882a5c89e96a90b13dbd1"
+      },
+      {
+        "case_id": "state.events.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:690fc63d3bc136640740c7df6dfdb366472ee3c2c5c4e572ad533de3287532a5"
+      },
+      {
+        "case_id": "state.history.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:b624a78f258f024f972384eb0d9d43324764a204da0fe39ba0ebacff05fcd5cb"
+      },
+      {
+        "case_id": "state.operation.inspect.read_deadline_is_retry_later",
+        "exit_code": 0,
+        "junit_digest": "sha256:9c96d47bd29a544bf5795b7abb6b5d6ac57df81e64ec5aa99421e9d62dccbacf"
+      },
+      {
+        "case_id": "state.create.existing_object_is_sticky_conflict",
+        "exit_code": 0,
+        "junit_digest": "sha256:9301c26d603fb6e2ed22f42618bffee19f87b12f3c0b0b0b0e308646542b2949"
+      },
+      {
+        "case_id": "state.transition.changed_world_retry_needs_new_operation",
+        "exit_code": 0,
+        "junit_digest": "sha256:96937e2b666d7888c8cc01f4306b21bead961107cb733d4e617c9a8d7907dd44"
+      },
+      {
+        "case_id": "state.transition.tombstoned_object_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:05cf9fe67eca0eed5bb7c48cfe8dd8587104851986af4697be4b19d3abc2997f"
+      },
+      {
+        "case_id": "state.tombstone.suppresses_current_read_only",
+        "exit_code": 0,
+        "junit_digest": "sha256:41dc60285bc77d7233e2e42eab51b0ffe67b8d84ab207e048cd1a8b94b000774"
+      },
+      {
+        "case_id": "state.tombstone.already_tombstoned_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:c1d35bd158d2956309f9781abc0c860c5ccce5b1fe9d89991bdfdc6cd1b4f607"
+      },
+      {
+        "case_id": "state.tombstone.object_identity_is_not_reusable",
+        "exit_code": 0,
+        "junit_digest": "sha256:9c327a3a609fe2c4ec504a88c7a76480e00bc93955e46d3556bc1332345ab101"
+      },
+      {
+        "case_id": "state.restore.creates_new_active_revision",
+        "exit_code": 0,
+        "junit_digest": "sha256:86309ebd38fe854ac389d5df9b686ceb2fdebdfcbdc009bf2838d5f2e77fc12c"
+      },
+      {
+        "case_id": "state.erase.scrubs_payload_preserves_identity_and_replay",
+        "exit_code": 0,
+        "junit_digest": "sha256:146c50f9484f9a81fedb335f064eb1bf0f52c1ac11456ef88edf5e2904d4a1ae"
+      },
+      {
+        "case_id": "state.restore.creates_new_active_revision",
+        "exit_code": 0,
+        "junit_digest": "sha256:a6ac6f344a667803caaeccd3b51bf45875fee68f5410a2bdd00c33b8952a4693"
+      },
+      {
+        "case_id": "state.restore.active_object_conflicts",
+        "exit_code": 0,
+        "junit_digest": "sha256:e59cd5f7100f5e7bc09fc572a5979f1344a77ca45407ccd0d5b56644c8df01d4"
+      },
+      {
+        "case_id": "state.restore.source_must_be_retained_prior_revision",
+        "exit_code": 0,
+        "junit_digest": "sha256:9c01a99626e4c33cfc73145dcd62202c88e62e708e95cff8e63a03b3b86a89cb"
+      },
+      {
+        "case_id": "state.claim.tombstoned_object_is_claimable_and_fences_restore",
+        "exit_code": 0,
+        "junit_digest": "sha256:0f5af7c7c191811b15ffcc2cc016e91c392da607bde62367c07f9a4dd4828225"
+      },
+      {
+        "case_id": "state.erase.scrubs_payload_preserves_identity_and_replay",
+        "exit_code": 0,
+        "junit_digest": "sha256:5e9a3e255ce54bcfdffdb128cae1b076cf3d5b49726c6cc885a351701df578ba"
+      },
+      {
+        "case_id": "state.create.unadmitted_retention_is_refused",
+        "exit_code": 0,
+        "junit_digest": "sha256:5fb1dbfbabb952ba4ee3e7847edef215e5e9259948433f2b4e30231208d9af2f"
+      },
+      {
+        "case_id": "state.erase.scrubs_payload_preserves_identity_and_replay",
+        "exit_code": 0,
+        "junit_digest": "sha256:3be99e51471c7c75f5e515cd4220ef6b0cc0c23dc29864ce375a846180eda719"
+      },
+      {
+        "case_id": "state.erase.is_not_a_gate_action",
+        "exit_code": 0,
+        "junit_digest": "sha256:9a59fea45a3db503ef1582e5077fbcb5f7b42cdd82aadc44811b7c163e79534d"
+      }
+    ],
+    "isolation": {
+      "achieved": "fresh_tempdir_fresh_process_scrubbed_env",
+      "level": "process",
+      "limitations": [
+        "no container, network namespace, or filesystem sandbox",
+        "network is not blocked; proxy and credential environment variables are not passed to cases"
+      ],
+      "network": "best_effort_unrestricted",
+      "requested": "fresh_subject_per_case"
+    },
+    "reproduction": "python3 scripts/rehearse.py --plan <plan>"
+  }
+}

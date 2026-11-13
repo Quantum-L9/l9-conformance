@@ -21,9 +21,10 @@ from functools import cache
 from pathlib import Path
 from typing import Any, Final, Literal, cast
 
+import yaml
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
-from l9_conformance.digests import sha256_canonical
+from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_canonical
 
 SCHEMA_ID: Final = "l9-conformance/conformance-receipt@1"
 RECEIPT_TYPE: Final = "l9.receipt/conformance@1"
@@ -142,6 +143,35 @@ def verify_receipt(receipt: Mapping[str, Any]) -> None:
             f"overall_verdict recorded {outcome['overall_verdict']}, derived {derived_overall}"
         )
     coordinates = cast(Mapping[str, Any], receipt["governing_coordinates"])
+    for block in ("rendered_suite", "harness"):
+        if block in coordinates:
+            bound = cast(Mapping[str, Any], coordinates[block])
+            files = cast(list[dict[str, str]], bound["files"])
+            if file_set_digest(files) != bound["digest"]:
+                raise ReceiptInvalid(f"{block}.digest is not the digest of its file list")
     authority = cast(Mapping[str, Any], coordinates["canonical_authority"])
     if receipt["evidence_grade"] == "canonical" and not authority["admitted"]:
         raise ReceiptInvalid("canonical evidence_grade requires admitted canonical authority")
+
+
+def verify_receipt_inputs(
+    receipt: Mapping[str, Any], *, ir_bytes: bytes, fixture_ir_bytes: bytes
+) -> None:
+    """Verify a receipt, then recompute its IR bindings from the actual input bytes.
+
+    Raw digests are recomputed from the bytes; a recorded ``semantic_digest`` is
+    recomputed from the parsed document (canonical JSON). Any mismatch is ReceiptInvalid.
+    """
+    verify_receipt(receipt)
+    coordinates = cast(Mapping[str, Any], receipt["governing_coordinates"])
+    for key, data in (("conformance_ir", ir_bytes), ("fixture_ir", fixture_ir_bytes)):
+        bound = cast(Mapping[str, Any], coordinates[key])
+        if sha256_bytes(data) != bound["digest"]:
+            raise ReceiptInvalid(f"{key}.digest does not match the supplied bytes")
+        if "semantic_digest" in bound:
+            try:
+                document = yaml.safe_load(data)
+            except yaml.YAMLError as exc:
+                raise ReceiptInvalid(f"{key} bytes are unparseable: {exc}") from exc
+            if sha256_canonical(document) != bound["semantic_digest"]:
+                raise ReceiptInvalid(f"{key}.semantic_digest does not match the supplied bytes")

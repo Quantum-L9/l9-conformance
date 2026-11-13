@@ -288,3 +288,74 @@ def test_source_revision_recorded_as_caller_supplied(
     receipt = run(closure.request(**overrides, bound_source_digest=None))
     implementation = receipt["exact_subject_ref"]["implementation"]
     assert implementation["source_revision_basis"] == "caller_supplied"
+
+
+# --- l9-conformance/source-subject-manifest@0 ---------------------------------------------
+
+
+def _source_subject(tmp_path: Path, **overrides: Any) -> tuple[Path, Path, str]:
+    tree = tmp_path / "subject"
+    (tree / "pkg").mkdir(parents=True)
+    (tree / "pkg" / "__init__.py").write_bytes(b"")
+    (tree / "pkg" / "mod.py").write_bytes(b"X = 1\n")
+    from l9_conformance.digests import sha256_file
+
+    manifest: dict[str, Any] = {
+        "schema": "l9-conformance/source-subject-manifest@0",
+        "source_revision": "Org/repo@" + "a" * 40,
+        "source_path": "product/src",
+        "packages": ["pkg"],
+        "files": [
+            {"path": p, "sha256": sha256_file(tree / p)} for p in ("pkg/__init__.py", "pkg/mod.py")
+        ],
+    }
+    manifest.update(overrides)
+    path = tmp_path / "subject-manifest.yaml"
+    path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+    from l9_conformance.digests import sha256_file as _sf
+
+    return tree, path, _sf(path)
+
+
+def test_source_subject_binds_exact_tree(tmp_path: Path) -> None:
+    from l9_conformance import node_artifact
+
+    tree, path, digest = _source_subject(tmp_path)
+    art = node_artifact.load(tree, path, digest)
+    assert art.manifest_schema == "l9-conformance/source-subject-manifest@0"
+    assert [f["path"] for f in art.files] == ["pkg/__init__.py", "pkg/mod.py"]
+    assert art.compilation_receipt is None
+    assert art.python_paths == (".",)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "match"),
+    [
+        ({"source_revision": "Org/repo@main"}, "40-hex"),
+        ({"source_path": "../escape"}, "contained"),
+        ({"packages": []}, "non-empty"),
+        ({"packages": ["not-ident"]}, "identifier"),
+        ({"packages": ["other"]}, "outside the packages"),
+    ],
+)
+def test_source_subject_refusals(tmp_path: Path, overrides: dict[str, Any], match: str) -> None:
+    from l9_conformance import node_artifact
+
+    tree, path, digest = _source_subject(tmp_path, **overrides)
+    with pytest.raises(node_artifact.ArtifactRefused, match=match):
+        node_artifact.load(tree, path, digest)
+
+
+def test_source_subject_unbound_and_changed_files_refused(tmp_path: Path) -> None:
+    from l9_conformance import node_artifact
+
+    tree, path, digest = _source_subject(tmp_path)
+    (tree / "pkg" / "extra.py").write_bytes(b"")
+    with pytest.raises(node_artifact.ArtifactRefused, match="unbound"):
+        node_artifact.load(tree, path, digest)
+    (tree / "pkg" / "extra.py").unlink()
+    (tree / "pkg" / "mod.py").write_bytes(b"X = 2\n")
+    with pytest.raises(node_artifact.ArtifactRefused, match="digest mismatch"):
+        node_artifact.load(tree, path, digest)
+    with pytest.raises(node_artifact.ArtifactRefused, match="digest mismatch"):
+        node_artifact.load(tree, path, "sha256:" + "0" * 64)

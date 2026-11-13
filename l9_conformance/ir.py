@@ -60,6 +60,10 @@ class Obligation:
     verification_class: VerificationClass
     required: bool
     cases: tuple[Case, ...]
+    # The IR's own disposition. "unresolved" obligations are never executed; their
+    # verdict is unresolved with ``unresolved_reason`` (l9.conformance-ir/v1).
+    disposition: str = "executable"
+    unresolved_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -84,6 +88,17 @@ class ConformanceIR:
     isolation: str
     suite_files: tuple[SuiteFile, ...]
     obligations: tuple[Obligation, ...]
+    # How ``fixture_ir.digest`` is computed: raw file bytes, or the F1 semantic digest
+    # (canonical JSON of the parsed document).
+    fixture_digest_kind: str = "raw"
+    # The IR's own semantic digest, when the format defines one (v1); checked against
+    # the caller-bound expected semantic digest.
+    semantic_digest: str | None = None
+    # Where a case verdict comes from: the JUnit report (synthetic suites) or the
+    # rendered suite's outcome record keyed by exact case id (pytest/v2).
+    outcome_source: str = "junit"
+    # v1 subject.closure_digest, cross-checked against the rendered suite's cases file.
+    closure_digest: str | None = None
 
 
 def checked_nodeid(nodeid: str) -> str:

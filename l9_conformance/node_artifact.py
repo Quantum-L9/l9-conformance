@@ -11,6 +11,14 @@ Two manifest formats are accepted:
     exactly: every ``generated[]`` file, every ``packaging.included_bound_sources[]``
     file, the declared ``pyproject.toml`` (if any), and the two evidence files.
 
+``l9-conformance/source-subject-manifest@0``
+    The subject is a product's own source at a pinned revision (no compiled node exists,
+    e.g. a compiler rehearsal that executes the product source directly). The manifest is
+    held outside the tree, its digest is its raw bytes, and it names the
+    ``source_revision`` (``<repo>@<40-hex>``), the ``source_path`` the files were taken
+    from, and the importable ``packages``. The tree must hold exactly the listed files,
+    every one inside a listed package.
+
 ``l9-conformance/synthetic-node-manifest@0`` (test-only)
     ``{files: [{path, sha256}]}`` held outside the tree; digest = raw file bytes.
 
@@ -31,6 +39,7 @@ from l9_conformance.digests import file_set_digest, sha256_canonical, sha256_fil
 
 COMPILER_MANIFEST_SCHEMA: Final = "l9.semantic-compiler.node-artifact-manifest/v1"
 SYNTHETIC_MANIFEST_SCHEMA: Final = "l9-conformance/synthetic-node-manifest@0"
+SOURCE_SUBJECT_SCHEMA: Final = "l9-conformance/source-subject-manifest@0"
 COMPILER_RECEIPT_SCHEMA: Final = "l9.compiler-receipt/v1"
 COMPILER_RECEIPT_TYPE: Final = "l9.receipt/compilation@1"
 COMPILER_IDENTITY_PREFIX: Final = "l9.receipt-instance/"
@@ -232,11 +241,63 @@ def _load_synthetic(artifact_dir: Path, manifest_path: Path, expected: str) -> N
     )
 
 
+def _load_source_subject(artifact_dir: Path, manifest_path: Path, expected: str) -> NodeArtifact:
+    digest = sha256_file(manifest_path)
+    if digest != expected:
+        raise ArtifactRefused(
+            f"artifact manifest digest mismatch: bound {expected}, actual {digest}"
+        )
+    manifest = _load_yaml_mapping(manifest_path, "artifact manifest")
+    revision = manifest.get("source_revision")
+    repo, sep, rev = str(revision).rpartition("@")
+    if (
+        not isinstance(revision, str)
+        or not sep
+        or not repo
+        or len(rev) != 40
+        or any(c not in "0123456789abcdef" for c in rev)
+    ):
+        raise ArtifactRefused("source subject: source_revision is not <repo>@<40-hex>")
+    source_path = manifest.get("source_path")
+    if not isinstance(source_path, str):
+        raise ArtifactRefused("source subject: source_path missing")
+    _contained(source_path, "source subject source_path")
+    raw_packages = manifest.get("packages")
+    if not isinstance(raw_packages, list) or not raw_packages:
+        raise ArtifactRefused("source subject: packages must be a non-empty list")
+    packages: list[str] = []
+    for pkg in cast(list[Any], raw_packages):
+        if not isinstance(pkg, str) or not pkg.isidentifier():
+            raise ArtifactRefused(f"source subject: package {pkg!r} is not an identifier")
+        packages.append(pkg)
+    entries = _entries(manifest.get("files"), "artifact manifest files", "sha256")
+    if not entries:
+        raise ArtifactRefused("artifact manifest: files must be a non-empty list")
+    for entry in entries:
+        if entry["path"].split("/", 1)[0] not in packages or "/" not in entry["path"]:
+            raise ArtifactRefused(f"source subject: {entry['path']} is outside the packages")
+    for pkg in packages:
+        if f"{pkg}/__init__.py" not in {e["path"] for e in entries}:
+            raise ArtifactRefused(f"source subject: package {pkg} has no bound __init__.py")
+    files = _check_exact(artifact_dir, {e["path"]: e["sha256"] for e in entries})
+    return NodeArtifact(
+        manifest_schema=SOURCE_SUBJECT_SCHEMA,
+        manifest_digest=digest,
+        files=files,
+        product_ref=None,
+        bound_source_digest=file_set_digest(entries),
+        compilation_receipt=None,
+        python_paths=(".",),
+    )
+
+
 def load(artifact_dir: Path, manifest_path: Path, expected_digest: str) -> NodeArtifact:
     manifest = _load_yaml_mapping(manifest_path, "artifact manifest")
     schema = manifest.get("schema")
     if schema == COMPILER_MANIFEST_SCHEMA:
         return _load_compiler(artifact_dir, manifest_path, expected_digest)
+    if schema == SOURCE_SUBJECT_SCHEMA:
+        return _load_source_subject(artifact_dir, manifest_path, expected_digest)
     if schema == SYNTHETIC_MANIFEST_SCHEMA:
         return _load_synthetic(artifact_dir, manifest_path, expected_digest)
     raise ArtifactRefused(f"artifact manifest schema {schema!r} is not supported")

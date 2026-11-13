@@ -58,6 +58,7 @@
             "manifest_schema": {
               "enum": [
                 "l9.semantic-compiler.node-artifact-manifest/v1",
+                "l9-conformance/source-subject-manifest@0",
                 "l9-conformance/synthetic-node-manifest@0"
               ]
             },
@@ -165,10 +166,10 @@
           }
         },
         "conformance_ir": {
-          "$ref": "#/$defs/refDigest"
+          "$ref": "#/$defs/irRef"
         },
         "fixture_ir": {
-          "$ref": "#/$defs/refDigest"
+          "$ref": "#/$defs/irRef"
         },
         "rendered_suite": {
           "type": "object",
@@ -190,6 +191,41 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/refDigest"
+          }
+        },
+        "harness": {
+          "description": "Conformance-harness code executed by the run (coordinator ruling D5). Every file under the declared harness root is bound by raw sha256; the harness never ships in the node artifact.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_revision",
+            "source_revision_basis",
+            "root",
+            "driver_ref",
+            "digest",
+            "files"
+          ],
+          "properties": {
+            "source_revision": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "source_revision_basis": {
+              "const": "caller_supplied"
+            },
+            "root": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$"
+            },
+            "driver_ref": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "files": {
+              "$ref": "#/$defs/fileDigests"
+            }
           }
         }
       }
@@ -454,6 +490,26 @@
           "sha256": {
             "$ref": "#/$defs/digest"
           }
+        }
+      }
+    },
+    "irRef": {
+      "description": "An IR bound by raw file-byte digest and, when its format defines one, by its semantic digest (canonical JSON of the parsed document; ruling D8).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "digest"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "semantic_digest": {
+          "$ref": "#/$defs/digest"
         }
       }
     }
