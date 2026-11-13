@@ -1,0 +1,46 @@
+files:
+- path: l9_state/__init__.py
+  sha256: sha256:cfa08333b82465bf45c23cfdba335ba0779baefb004e2c2f0ce32ff8eb95ebd7
+- path: l9_state/adapters/__init__.py
+  sha256: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- path: l9_state/adapters/memory.py
+  sha256: sha256:a35da2d6151d550830a69a5a8a133b2955dd5ec6ec5f5da1728854fecac81fc2
+- path: l9_state/adapters/mongodb.py
+  sha256: sha256:bde735f785d1790e4e31311aed5ccfbe8c53ded382531138d6906e035c7b7cfd
+- path: l9_state/adapters/mongodb_contract.py
+  sha256: sha256:b0695cdd7e8b8b58f25fca71d270d04412e54383ad4c841edcc3cbd53f4b8fe7
+- path: l9_state/bindings/__init__.py
+  sha256: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- path: l9_state/bindings/gate.py
+  sha256: sha256:1bc84e96bcf4dea40ff67c378150d554dbbd6dd261d8f0ebea9a8c84d8c8cfca
+- path: l9_state/catalog.py
+  sha256: sha256:1f0424f68a2497ed5ba3fc7984ce7c631bdbb4b837b3b8d0325a194ac348697e
+- path: l9_state/client.py
+  sha256: sha256:416cb7dfcfd0806377c8400dd9e914585255764fadc8f2ce2ed0d816bfb8e44e
+- path: l9_state/cursor.py
+  sha256: sha256:2f839377ce7e73389b3e2fc59acca312486262a1fba8a94cfc23d0c4a172df94
+- path: l9_state/digests.py
+  sha256: sha256:0abb2a7b99cf88f8ee23f5776861f2edcbe1e552753b01acf042a424bcdbcf5c
+- path: l9_state/errors.py
+  sha256: sha256:ba77dc1498a3094e20aed290df7f4bd52454d98e01c11423733754c72218f92a
+- path: l9_state/execution.py
+  sha256: sha256:680c4fddb328a5b22475365053f093347a37b1aa6d885e2f1380a3d0c01a0209
+- path: l9_state/internal_models.py
+  sha256: sha256:059d6535c9b1a8f6da66160eaa559cfe790ddd353597ee42dcb912efe38b735b
+- path: l9_state/lifecycle.py
+  sha256: sha256:868f3ebcd5c3bf1fa904ccbca7e7a87d2507f351243e343ecae68c973da65769
+- path: l9_state/models.py
+  sha256: sha256:7262ddcb3fd840e1d145b4a8f96c5f9e8c6598c62ab2daa6b5786bdc4baa5e17
+- path: l9_state/outcomes.py
+  sha256: sha256:8c8cdf27df496973aece2acad2a4a1a35c080da42f2340129892c2b324757829
+- path: l9_state/ports.py
+  sha256: sha256:a734082e411ef1fe25f8235ededf850e45993d997c7fd115bed0f4d08615ed07
+- path: l9_state/retention.py
+  sha256: sha256:e07332529f43963fdaf8889aa480852970362a787d4d811269b7ea811c3a6e28
+- path: l9_state/service.py
+  sha256: sha256:8a3193ffe8598cd4891cadaded5168251ee0a882b6d30344f7614674cfaae061
+packages:
+- l9_state
+schema: l9-conformance/source-subject-manifest@0
+source_path: l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/src
+source_revision: Quantum-L9/l9-wip@711da6842378eea88d5dace26ffa48bedd632a7b
