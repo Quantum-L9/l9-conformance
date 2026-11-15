@@ -15,18 +15,76 @@ governing_refs:
 - l9.node-archetypes/global@1
 - l9.conformance-model/global@1
 - l9.contract/conformance-resolution@1
+classification_rule_ref: catalog/INDEX.yaml#authoritative_state_classification
+obligation_source:
+  repository: Quantum-L9/l9-wip
+  revision: da3f4bcb1ed4d287ace1ce16c2d60c91bd98cea7
+  law_index:
+    path: l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/fixtures/conformance/STATE_FIXTURE_CASES.yaml
+    sha256: sha256:90e55346e9c3f258a1c631bb77a533f47a4a918c45c8edf63f12d2e3175fb1e8
+    selector: $.law_index
+  law_source:
+    path: l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/invariants.yaml
+    sha256: sha256:f6fc5abb88b9418339474247fc8a556c8a61a1d700f6184c76fe72feb2934af9
+    revision: l9.state.root/invariants@v3
+obligations:
+- id: O-AS-CORE-STATE-REV-001
+  law_ref: STATE-REV-001
+  statement: Revision starts at 0 and increments exactly once per state mutation; object identity is never
+    reused.
+  state_law_class: revision
+  verification_class: fixture_replay
+- id: O-AS-CORE-STATE-IDEMP-001
+  law_ref: STATE-IDEMP-001
+  statement: One scoped operation ID binds exactly one action and canonical request digest.
+  state_law_class: idempotency
+  verification_class: fixture_replay
+- id: O-AS-CORE-STATE-OUTCOME-001
+  law_ref: STATE-OUTCOME-001
+  statement: An admitted OperationKey has at most one durable terminal receipt.
+  state_law_class: idempotency
+  verification_class: fixture_replay
+- id: O-AS-CORE-STATE-OUTCOME-003
+  law_ref: STATE-OUTCOME-003
+  statement: A terminal OperationKey is never re-evaluated; changed-world retry requires a new operation_id.
+  state_law_class: idempotency
+  verification_class: fixture_replay
+- id: O-AS-CORE-STATE-LIFECYCLE-001
+  law_ref: STATE-LIFECYCLE-001
+  statement: v1 lifecycle is active -> tombstoned -> active by retained restore; erased is terminal.
+  state_law_class: lifecycle
+  verification_class: fixture_replay
+- id: O-AS-CORE-STATE-DOMAIN-001
+  law_ref: STATE-DOMAIN-001
+  statement: State core contains no domain-specific WorkItem/agent/business branches.
+  state_law_class: authority
+  verification_class: static_inspection
+- id: O-AS-CORE-STATE-AMBIGUITY-001
+  law_ref: STATE-AMBIGUITY-001
+  statement: Once commit may have occurred, semantic execution stops and only authoritative reconciliation
+    is allowed.
+  state_law_class: recovery
+  verification_class: fixture_replay
+- id: O-AS-CORE-STATE-BIRTH-001
+  law_ref: STATE-BIRTH-001
+  statement: l9-state never owns repository/node birth machinery.
+  state_law_class: ownership
+  verification_class: static_inspection
+- id: O-AS-CORE-STATE-SCHEMA-001
+  law_ref: STATE-SCHEMA-001
+  statement: v1 schema binding is immutable per object and schema meaning remains external.
+  state_law_class: schema
+  verification_class: fixture_replay
+- id: O-AS-CORE-STATE-TENANT-001
+  law_ref: STATE-TENANT-001
+  statement: Trusted tenant identity is transport-derived and present in every persistence key.
+  state_law_class: security
+  verification_class: fixture_replay
 unresolved:
-- id: U-AS-CORE-1
-  kind: obligation_content
-  statement: No governing semantics at Quantum-L9/.github@dcd9d0092740756c19ac681d399bd438409bdc52 define
-    which obligations conformance class core imposes on l9.node-archetype/authoritative-state@1 beyond
-    the class being required. Membership is limited to the class-requirement witness.
-  resolution_requires: canonical law assigning obligations to the class, or an admitted product-declared
-    fixture set for this class
 - id: U-AS-CORE-2
   kind: class_assignment
-  statement: The archetype's requirements below are not assigned to any conformance class by governing
-    semantics; none is included in this profile.
+  statement: The archetype requirements below are not assigned to any conformance class by governing semantics;
+    none is included in this profile.
   unassigned_archetype_requirements:
     required_architecture_patterns:
     - l9.pattern/immutable-revisioned-state@1

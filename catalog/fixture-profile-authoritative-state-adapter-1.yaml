@@ -15,18 +15,39 @@ governing_refs:
 - l9.node-archetypes/global@1
 - l9.conformance-model/global@1
 - l9.contract/conformance-resolution@1
+classification_rule_ref: catalog/INDEX.yaml#authoritative_state_classification
+obligation_source:
+  repository: Quantum-L9/l9-wip
+  revision: da3f4bcb1ed4d287ace1ce16c2d60c91bd98cea7
+  law_index:
+    path: l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/fixtures/conformance/STATE_FIXTURE_CASES.yaml
+    sha256: sha256:90e55346e9c3f258a1c631bb77a533f47a4a918c45c8edf63f12d2e3175fb1e8
+    selector: $.law_index
+  law_source:
+    path: l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/invariants.yaml
+    sha256: sha256:f6fc5abb88b9418339474247fc8a556c8a61a1d700f6184c76fe72feb2934af9
+    revision: l9.state.root/invariants@v3
+obligations:
+- id: O-AS-ADAPTER-STATE-GATE-001
+  law_ref: STATE-GATE-001
+  statement: All inter-node traffic is Gate-mediated.
+  state_law_class: transport
+  verification_class: fixture_replay
+- id: O-AS-ADAPTER-STATE-BUDGET-001
+  law_ref: STATE-BUDGET-001
+  statement: Gate timeout is the sole request-budget authority; State may shrink but never extend it.
+  state_law_class: deadline
+  verification_class: fixture_replay
+- id: O-AS-ADAPTER-STATE-PROVIDER-001
+  law_ref: STATE-PROVIDER-001
+  statement: Public/domain contracts contain no storage-provider syntax or identifiers.
+  state_law_class: provider
+  verification_class: static_inspection
 unresolved:
-- id: U-AS-ADAPTER-1
-  kind: obligation_content
-  statement: No governing semantics at Quantum-L9/.github@dcd9d0092740756c19ac681d399bd438409bdc52 define
-    which obligations conformance class adapter imposes on l9.node-archetype/authoritative-state@1 beyond
-    the class being required. Membership is limited to the class-requirement witness.
-  resolution_requires: canonical law assigning obligations to the class, or an admitted product-declared
-    fixture set for this class
 - id: U-AS-ADAPTER-2
   kind: class_assignment
-  statement: The archetype's requirements below are not assigned to any conformance class by governing
-    semantics; none is included in this profile.
+  statement: The archetype requirements below are not assigned to any conformance class by governing semantics;
+    none is included in this profile.
   unassigned_archetype_requirements:
     required_architecture_patterns:
     - l9.pattern/immutable-revisioned-state@1
