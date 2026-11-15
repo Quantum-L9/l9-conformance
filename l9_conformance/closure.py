@@ -44,6 +44,7 @@ AUTHORITY_STATUS: Final[Mapping[str, bool]] = {"candidate_not_admitted": False}
 _DRIVER_SPEC: Final = re.compile(r"^([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*):([A-Za-z_]\w*)$", re.ASCII)
 _HEX64: Final = re.compile(r"[0-9a-f]{64}")
 _CLOSURE: Final = "closure"
+_COMPILER: Final = "closure.compiler"
 
 
 class ClosureRefused(RuntimeError):
@@ -216,7 +217,7 @@ def load(closure_path: Path) -> Closure:
     status = _str(document, "authority_status", _CLOSURE)
     if status not in AUTHORITY_STATUS:
         raise ClosureRefused(f"closure.authority_status {status!r} is not interpretable")
-    compiler = _mapping(document.get("compiler"), "closure.compiler")
+    compiler = _mapping(document.get("compiler"), _COMPILER)
     base = closure_path.parent
 
     def path(key: str) -> Path:
@@ -245,8 +246,8 @@ def load(closure_path: Path) -> Closure:
         ),
         schema_sources=_schema_sources(document, status),
         compiler={
-            "name": _str(compiler, "name", "closure.compiler"),
-            "version": _str(compiler, "version", "closure.compiler"),
+            "name": _str(compiler, "name", _COMPILER),
+            "version": _str(compiler, "version", _COMPILER),
         },
     )
 
@@ -303,7 +304,12 @@ def law_index(closure: Closure) -> dict[str, str]:
 
 
 def check_suite_table(closure: Closure) -> None:
-    """The rendered case table (bytes verified by the runner) names this product."""
+    """The rendered case table (bytes verified by the runner) names this product, and every
+    case the IR plans to execute is a case of that table.
+
+    A planned case id selects a test only after it is found in the closure's own case table,
+    so no case-derived value reaches a subprocess unless the bound suite declares it.
+    """
     table = _mapping(
         _json(closure.suite_dir / ir_v1.PYTEST_V2_CASES_FILE, "suite case table"), "case table"
     )
@@ -311,6 +317,28 @@ def check_suite_table(closure: Closure) -> None:
         raise ClosureRefused(f"suite case table binding is not {SUITE_BINDING}")
     if table.get("product_ref") != closure.product_ref:
         raise ClosureRefused("suite case table product_ref is not the closure product")
+    declared = {
+        _str(_mapping(c, f"case table cases[{i}]"), "id", f"case table cases[{i}]")
+        for i, c in enumerate(_list(table.get("cases"), "case table cases"))
+    }
+    document = _mapping(_json(closure.ir_path, "conformance IR"), "conformance IR")
+    for i, raw in enumerate(_list(document.get("obligations"), "ir.obligations")):
+        plan = _mapping(raw, f"ir.obligations[{i}]").get("execution_plan")
+        if plan is None:
+            continue
+        cases = _list(_mapping(plan, f"ir.obligations[{i}].execution_plan").get("cases"), "cases")
+        missing = sorted({str(c) for c in cases} - declared)
+        if missing:
+            raise ClosureRefused(
+                f"ir.obligations[{i}]: planned cases {missing} are not in the suite case table"
+            )
+
+
+def check_source_revision(closure: Closure, supplied: str | None) -> None:
+    if supplied is not None and supplied != closure.source_revision:
+        raise ClosureRefused(
+            f"source revision mismatch: supplied {supplied}, closure {closure.source_revision}"
+        )
 
 
 def suite_binding(closure: Closure) -> ir_v1.SuiteBinding:

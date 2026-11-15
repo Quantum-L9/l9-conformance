@@ -148,6 +148,28 @@ def declared_harness_root(subject_dir: Path, declared_in: str, requested: object
     return wanted
 
 
+def _copy_package(
+    subject_dir: Path, source_path: str, pkg: str, tree: Path
+) -> list[dict[str, str]]:
+    """Copy one package into ``tree``, refusing symlinks and bytecode; return its bindings."""
+    src = subject_dir / source_path / pkg
+    if not pkg.isidentifier() or not src.is_dir() or src.is_symlink():
+        raise PlanError(f"subject_source package {pkg!r} is not a directory under {source_path}")
+    files: list[dict[str, str]] = []
+    for path in sorted(src.rglob("*")):
+        if path.is_symlink():
+            raise PlanError(f"subject_source: symlink {path.relative_to(subject_dir)}")
+        if "__pycache__" in path.parts or path.suffix in (".pyc", ".pyo"):
+            raise PlanError(f"subject_source: bytecode {path.relative_to(subject_dir)}")
+        if path.is_file():
+            rel_file = f"{pkg}/{path.relative_to(src).as_posix()}"
+            target = tree / rel_file
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, target)
+            files.append({"path": rel_file, "sha256": sha256_file(path)})
+    return files
+
+
 def stage_source_subject(
     subject_dir: Path, source_revision: str, source_path: str, packages: list[str], dest: Path
 ) -> tuple[Path, Path, str]:
@@ -168,22 +190,7 @@ def stage_source_subject(
     tree = dest / "tree"
     files: list[dict[str, str]] = []
     for pkg in packages:
-        src = subject_dir / source_path / pkg
-        if not pkg.isidentifier() or not src.is_dir() or src.is_symlink():
-            raise PlanError(
-                f"subject_source package {pkg!r} is not a directory under {source_path}"
-            )
-        for path in sorted(src.rglob("*")):
-            if path.is_symlink():
-                raise PlanError(f"subject_source: symlink {path.relative_to(subject_dir)}")
-            if "__pycache__" in path.parts or path.suffix in (".pyc", ".pyo"):
-                raise PlanError(f"subject_source: bytecode {path.relative_to(subject_dir)}")
-            if path.is_file():
-                rel_file = f"{pkg}/{path.relative_to(src).as_posix()}"
-                target = tree / rel_file
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(path, target)
-                files.append({"path": rel_file, "sha256": sha256_file(path)})
+        files.extend(_copy_package(subject_dir, source_path, pkg, tree))
     manifest = {
         "schema": SOURCE_SUBJECT_SCHEMA,
         "source_revision": source_revision,

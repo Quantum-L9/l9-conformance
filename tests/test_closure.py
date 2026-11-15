@@ -178,33 +178,56 @@ def test_state_birth_gate_is_not_passable_and_lists_open_evidence(
         assert _obligations(receipt)[oid]["verdict"] == "unresolved"  # never rewritten
 
 
-def test_cli_closure_mode_writes_receipt_and_exits_non_pass(
-    compiled: tuple[Path, Path], tmp_path: Path
+def _work(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, product: bool = True) -> Path:
+    """A fixed-layout work directory holding the compiled closure (and its product)."""
+    work = tmp_path / "work"
+    shutil.copytree(FIXTURE / "closure", work / "closure")
+    if product:
+        shutil.copytree(FIXTURE / "product", work / "product")
+    monkeypatch.setattr(run_conformance, "WORK_DIR", work)
+    return work
+
+
+def test_cli_reads_the_fixed_work_dir_and_exits_non_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    closure_json, product = compiled
-    out = tmp_path / "receipt.json"
-    argv = ["--closure", str(closure_json), "--product-root", str(product), "--out", str(out)]
-    assert run_conformance.main(argv) == 1
-    verify_receipt(json.loads(out.read_text()))
+    work = _work(tmp_path, monkeypatch)
+    (work / "receipt.json").write_text("stale\n")
+    assert run_conformance.main([]) == 1
+    receipt = json.loads((work / "receipt.json").read_text())
+    verify_receipt(receipt)
+    assert receipt["verification_basis"]["reproduction"] == run_conformance.REPRODUCTION
 
 
 @pytest.mark.parametrize(
-    "extra",
+    "argv",
     [
-        ["--ir", "x.json"],
-        ["--harness-dir", "h"],
-        [],  # no --product-root
+        ["--closure", "closure.json"],  # no path is ever taken from argv
+        ["--out", "receipt.json"],
+        ["--timeout", "0"],
+        ["--timeout", "nan"],
     ],
 )
-def test_cli_closure_mode_refuses_mixed_or_incomplete_inputs(
-    compiled: tuple[Path, Path], tmp_path: Path, extra: list[str]
+def test_cli_takes_no_paths_and_validates_timeout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, argv: list[str]
 ) -> None:
-    closure_json, _ = compiled
-    argv = ["--closure", str(closure_json), "--out", str(tmp_path / "r"), *extra]
+    work = _work(tmp_path, monkeypatch)
     with pytest.raises(SystemExit) as exc:
         run_conformance.main(argv)
     assert exc.value.code == 2
-    assert not (tmp_path / "r").exists()
+    assert not (work / "receipt.json").exists()
+
+
+@pytest.mark.parametrize("product", [True, False])
+def test_cli_refusal_leaves_no_receipt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, product: bool
+) -> None:
+    work = _work(tmp_path, monkeypatch, product=product)
+    if product:
+        (work / "closure" / "closure.json").unlink()  # no closure
+    (work / "receipt.json").write_text("stale\n")
+    assert run_conformance.main([]) == 2
+    assert not (work / "receipt.json").exists()
 
 
 # ── fail closed: every binding the closure names ─────────────────────────────
@@ -342,6 +365,20 @@ def test_driver_module_must_be_the_file_the_spec_imports(compiled: tuple[Path, P
 def test_source_revision_must_match_the_closure(compiled: tuple[Path, Path]) -> None:
     closure_json, product = compiled
     _refused(closure_json, product, "source revision mismatch", source_revision="0" * 40)
+
+
+def test_planned_case_must_be_in_the_suite_case_table(compiled: tuple[Path, Path]) -> None:
+    closure_json, product = compiled
+
+    def mutate(doc: dict[str, Any]) -> None:
+        for o in doc["obligations"]:
+            if o.get("execution_plan"):
+                o["execution_plan"]["cases"][0] = "state.not.in.the.table"
+                o["witnessed_by"][0] = "state.not.in.the.table"
+                break
+
+    _rebind_ir(closure_json, mutate)
+    _refused(closure_json, product, "not in the suite case table")
 
 
 def _rebind_ir(closure_json: Path, mutate: Callable[[dict[str, Any]], None]) -> None:

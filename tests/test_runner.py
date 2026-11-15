@@ -256,37 +256,44 @@ def test_case_runs_in_fresh_directory(make_closure: Build, tmp_path: Path) -> No
     assert not (tmp_path / "suite" / "marker").exists()
 
 
-def _cli_args(closure: Closure, out: Path, **overrides: str) -> list[str]:
-    request = closure.request()
-    assert request.bound_source_digest is not None
-    args = {
-        "--ir": str(request.ir_path),
-        "--ir-digest": request.ir_digest,
-        "--fixture-ir": str(request.fixture_ir_path),
-        "--suite-dir": str(request.suite_dir),
-        "--artifact-dir": str(request.artifact_dir),
-        "--artifact-manifest": str(request.artifact_manifest_path),
-        "--artifact-manifest-digest": request.artifact_manifest_digest,
-        "--source-revision": request.source_revision,
-        "--bound-source-digest": request.bound_source_digest,
-        "--out": str(out),
-    }
-    args.update(overrides)
-    return [part for pair in args.items() for part in pair]
+def test_cli_exit_codes(
+    make_closure: Build, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Exit codes: 0 pass receipt, 1 non-pass receipt, 2 refused (no receipt).
 
-
-def test_cli_exit_codes(make_closure: Build, tmp_path: Path) -> None:
+    The CLI reads only its fixed work directory and runs only compiler closures; here the
+    closure run is replaced by real runner results (a real pass / fail receipt and a real
+    refusal) so the CLI's mapping of each to an exit code and a receipt file is what is
+    under test.
+    """
     import json
 
-    from run_conformance import main
+    import run_conformance
 
+    work = tmp_path / "work"
+    (work / "closure").mkdir(parents=True)
+    (work / "closure" / "closure.json").write_text("{}\n", encoding="utf-8")
+    monkeypatch.setattr(run_conformance, "WORK_DIR", work)
     closure = make_closure([replay("ob/a", "test_pass")])
-    out = tmp_path / "receipt.json"
-    assert main(_cli_args(closure, out)) == 0
-    verify_receipt(json.loads(out.read_text(encoding="utf-8")))
-    refused = tmp_path / "refused.json"
-    assert main(_cli_args(closure, refused, **{"--ir-digest": "sha256:" + "0" * 64})) == 2
-    assert not refused.exists()
+    passing = run(closure.request())
+    closure.ir_doc["obligations"] = [replay("ob/f", "test_fail")]
+    failing = run(closure.request())
+    receipt = work / "receipt.json"
+    for result, code in ((passing, 0), (failing, 1)):
+
+        def produce(_request: object, result: dict[str, Any] = result) -> dict[str, Any]:
+            return result
+
+        monkeypatch.setattr(run_conformance, "run_closure", produce)
+        assert run_conformance.main([]) == code
+        verify_receipt(json.loads(receipt.read_text(encoding="utf-8")))
+
+    def refuse(_request: object) -> dict[str, object]:
+        raise RunnerRefusal("bound input unverifiable")
+
+    monkeypatch.setattr(run_conformance, "run_closure", refuse)
+    assert run_conformance.main([]) == 2
+    assert not receipt.exists()
 
 
 def test_grade_rules(make_closure: Build) -> None:

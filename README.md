@@ -42,14 +42,16 @@ python3 scripts/check_catalog.py --law-root <.github>  # plus trace to pinned la
 
 ### Compiler closures (`l9.conformance-closure/v1`)
 
-Since 0.2.0 the runner consumes the conformance closure `l9-semantic-compiler birth-closure` (0.16.0+) writes:
+Since 0.2.0 the runner consumes the conformance closure `l9-semantic-compiler birth-closure` (0.16.0+) writes. The script takes no path arguments: inputs and output live under the fixed, git-ignored work directory `work/` at the repository root.
 
 ```bash
-python3 scripts/run_conformance.py \
-  --closure <out>/conformance/closure.json \
-  --product-root <product checkout> \
-  --out conformance-receipt.json
+# copy (or link) the compiler's <out>/conformance/ to work/closure, and the product checkout to work/product
+cp -r <out>/conformance work/closure
+cp -r <product checkout> work/product
+python3 scripts/run_conformance.py [--timeout SECONDS]   # writes work/receipt.json
 ```
+
+A receipt from an earlier run is removed first, so a refusal (exit 2) leaves none. Other input forms (synthetic IR, a v1 IR with a suite binding) are the Python API (`l9_conformance.runner.RunRequest`) and `scripts/rehearse.py`. Every case the IR plans must be a case of the suite's own case table before anything executes.
 
 Every binding comes from the closure and is verified before anything executes, failing closed on any mismatch or unknown schema/status: the closure fields and contained paths; the conformance IR raw digest and its coordinates (product, fixture IR and closure digests, authority revision, profile refs); the fixture IR semantic digest, subject and `law_index`; the `pytest/v2` suite file set byte-exact and its case table; the node artifact (manifest semantic digest, compilation receipt, exact file set including `birth.artifacts[]`). The product root supplies only the conformance driver harness, bound per ruling D5 (every file under the declared harness root, recorded in `governing_coordinates.harness`); the driver module must hold exactly the closure's `driver_factory.digest`. Cases then run exactly as for a v1 IR (one fresh directory and process per case, verdict from the suite's outcome record cross-checked with JUnit). The receipt records the closure in `governing_coordinates.conformance_closure`. Closures over the v3.40.0 candidate schemas are `candidate_not_admitted`, so the grade is at most `candidate_authority_rehearsal`.
 

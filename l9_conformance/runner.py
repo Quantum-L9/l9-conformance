@@ -363,6 +363,22 @@ def _laws(request: RunRequest, conformance_ir: ir.ConformanceIR) -> Mapping[str,
     return laws
 
 
+def _verify_closure_bindings(
+    bound: closure.Closure, request: ClosureRunRequest
+) -> tuple[ir_v1.SuiteBinding, harness.HarnessRequest]:
+    closure.check_source_revision(bound, request.source_revision)
+    closure.check_ir(bound)
+    closure.law_index(bound)
+    try:
+        _check_exact_tree(
+            bound.suite_dir, {f.path: f.sha256 for f in bound.suite_files}, "rendered suite"
+        )
+    except RunnerRefusal as exc:
+        raise closure.ClosureRefused(str(exc)) from exc
+    closure.check_suite_table(bound)
+    return closure.suite_binding(bound), closure.harness_request(bound, request.product_root)
+
+
 def verify_closure(request: ClosureRunRequest) -> RunRequest:
     """Verify what an ``l9.conformance-closure/v1`` declares; return the runner's request.
 
@@ -372,21 +388,7 @@ def verify_closure(request: ClosureRunRequest) -> RunRequest:
     """
     try:
         bound = closure.load(request.closure_path)
-        if request.source_revision is not None and request.source_revision != (
-            bound.source_revision
-        ):
-            raise closure.ClosureRefused(
-                f"source revision mismatch: supplied {request.source_revision}, "
-                f"closure {bound.source_revision}"
-            )
-        closure.check_ir(bound)
-        closure.law_index(bound)
-        _check_exact_tree(
-            bound.suite_dir, {f.path: f.sha256 for f in bound.suite_files}, "rendered suite"
-        )
-        closure.check_suite_table(bound)
-        binding = closure.suite_binding(bound)
-        harness_request = closure.harness_request(bound, request.product_root)
+        binding, harness_request = _verify_closure_bindings(bound, request)
     except closure.ClosureRefused as exc:
         raise RunnerRefusal(f"conformance closure: {exc}") from exc
     return RunRequest(
