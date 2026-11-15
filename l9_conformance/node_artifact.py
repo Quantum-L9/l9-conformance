@@ -9,7 +9,8 @@ Two manifest formats are accepted:
     *semantic* digest (canonical JSON of the parsed mapping) and must equal
     ``evidence/compilation-receipt.yaml`` ``output.digest``. The node tree must hold
     exactly: every ``generated[]`` file, every ``packaging.included_bound_sources[]``
-    file, the declared ``pyproject.toml`` (if any), and the two evidence files.
+    file, every ``birth.artifacts[]`` file (compiler 0.16.0), the declared
+    ``pyproject.toml`` (if any), and the two evidence files.
 
 ``l9-conformance/source-subject-manifest@0``
     The subject is a product's own source at a pinned revision (no compiled node exists,
@@ -161,6 +162,43 @@ def verify_compiler_receipt(receipt: Mapping[str, Any], manifest_digest: str) ->
     return {"receipt_identity": recorded_identity, "receipt_digest": recorded_digest}
 
 
+def _section_entries(manifest: Mapping[str, Any], section: str, key: str) -> list[dict[str, str]]:
+    value = manifest.get(section)
+    if value is None:
+        return []
+    if not isinstance(value, Mapping):
+        raise ArtifactRefused(f"artifact manifest: {section} is not a mapping")
+    return _entries(cast(Mapping[str, Any], value).get(key, []), f"{section}.{key}", "digest")
+
+
+def _manifest_files(manifest: Mapping[str, Any]) -> dict[str, str | None]:
+    """Every node file the compiler manifest binds, path -> raw sha256 (as the compiler's own
+    node verifier binds them): generated[], packaging.included_bound_sources[],
+    birth.artifacts[] (compiler 0.16.0 node-birth package) and a declared pyproject."""
+    generated = _entries(manifest.get("generated"), "generated", "digest")
+    if not generated:
+        raise ArtifactRefused("artifact manifest: generated[] is empty")
+    if not isinstance(manifest.get("packaging"), Mapping):
+        raise ArtifactRefused("artifact manifest: packaging missing")
+    included = _section_entries(manifest, "packaging", "included_bound_sources")
+    birth = _section_entries(manifest, "birth", "artifacts")
+    expected_files: dict[str, str | None] = {}
+    for entry in [*generated, *included, *birth]:
+        if entry["path"] in expected_files and expected_files[entry["path"]] != entry["sha256"]:
+            raise ArtifactRefused(f"artifact manifest: conflicting digests for {entry['path']}")
+        expected_files[entry["path"]] = entry["sha256"]
+    distribution = manifest.get("distribution")
+    if isinstance(distribution, Mapping):
+        dist = cast(Mapping[str, Any], distribution)
+        if dist.get("status") == "declared":
+            pyproject = dist.get("pyproject")
+            if not isinstance(pyproject, Mapping):
+                raise ArtifactRefused("artifact manifest: declared distribution lacks pyproject")
+            pp = _entries([pyproject], "distribution.pyproject", "digest")[0]
+            expected_files[pp["path"]] = pp["sha256"]
+    return expected_files
+
+
 def _load_compiler(artifact_dir: Path, manifest_path: Path, expected: str) -> NodeArtifact:
     if manifest_path.resolve() != (artifact_dir / MANIFEST_REL).resolve():
         raise ArtifactRefused(f"compiler manifest must be the node tree's {MANIFEST_REL}")
@@ -177,31 +215,7 @@ def _load_compiler(artifact_dir: Path, manifest_path: Path, expected: str) -> No
         raise ArtifactRefused("artifact manifest: product_ref missing")
     if receipt.get("exact_subject_ref") != product_ref:
         raise ArtifactRefused("compilation receipt: exact_subject_ref is not the manifest product")
-    generated = _entries(manifest.get("generated"), "generated", "digest")
-    if not generated:
-        raise ArtifactRefused("artifact manifest: generated[] is empty")
-    packaging = manifest.get("packaging")
-    if not isinstance(packaging, Mapping):
-        raise ArtifactRefused("artifact manifest: packaging missing")
-    included = _entries(
-        cast(Mapping[str, Any], packaging).get("included_bound_sources", []),
-        "packaging.included_bound_sources",
-        "digest",
-    )
-    expected_files: dict[str, str | None] = {}
-    for entry in [*generated, *included]:
-        if entry["path"] in expected_files and expected_files[entry["path"]] != entry["sha256"]:
-            raise ArtifactRefused(f"artifact manifest: conflicting digests for {entry['path']}")
-        expected_files[entry["path"]] = entry["sha256"]
-    distribution = manifest.get("distribution")
-    if isinstance(distribution, Mapping):
-        dist = cast(Mapping[str, Any], distribution)
-        if dist.get("status") == "declared":
-            pyproject = dist.get("pyproject")
-            if not isinstance(pyproject, Mapping):
-                raise ArtifactRefused("artifact manifest: declared distribution lacks pyproject")
-            pp = _entries([pyproject], "distribution.pyproject", "digest")[0]
-            expected_files[pp["path"]] = pp["sha256"]
+    expected_files = _manifest_files(manifest)
     # Evidence files are bound by the semantic manifest digest and the receipt's
     # self-digest above; their byte digests are recorded, not pre-bound.
     expected_files[MANIFEST_REL] = None
@@ -213,7 +227,9 @@ def _load_compiler(artifact_dir: Path, manifest_path: Path, expected: str) -> No
         manifest_digest=digest,
         files=files,
         product_ref=product_ref,
-        bound_source_digest=file_set_digest(included),
+        bound_source_digest=file_set_digest(
+            _section_entries(manifest, "packaging", "included_bound_sources")
+        ),
         compilation_receipt=receipt_binding,
         python_paths=tuple(python_paths),
     )

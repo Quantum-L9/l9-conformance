@@ -64,6 +64,8 @@ class Obligation:
     # verdict is unresolved with ``unresolved_reason`` (l9.conformance-ir/v1).
     disposition: str = "executable"
     unresolved_reason: str | None = None
+    # l9.conformance-ir/v1 governing law refs (each is a fixture IR law_index entry).
+    governing_refs: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

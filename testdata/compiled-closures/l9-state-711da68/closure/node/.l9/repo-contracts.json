@@ -1,0 +1,48 @@
+{
+  "authority_status": "candidate_not_admitted",
+  "binding": "l9.binding/node-birth-package@1",
+  "compiled_documents": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "sha256:e1860d20befc8d16e2fea82353f6682e45fb7b2186e4385ead26745b12125f56"
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "sha256": "sha256:382cfe6a0e6aed2efe79af4dd64af2569033336020db8be4c3be13d5c87f50cb"
+    },
+    {
+      "path": "README.md",
+      "sha256": "sha256:e34afd681b3b9e8c68fe87011848b1e0ddb25cd8d7a14a26ae3886c141623ab6"
+    },
+    {
+      "path": "llm.txt",
+      "sha256": "sha256:94a8419c3eefd16ad5e9211c631bf4749f9e0521154d234aacf89526fb4b8629"
+    }
+  ],
+  "contracts": [
+    {
+      "path": ".l9/architecture.yaml",
+      "schema": "l9.architecture-spec/v1"
+    },
+    {
+      "path": ".l9/ci.json",
+      "schema": "l9.ci-consumer/v1"
+    },
+    {
+      "path": ".l9/gate-registration.json",
+      "schema": "l9.gate-registration-manifest/v1"
+    },
+    {
+      "path": ".l9/ownership.yaml",
+      "schema": "l9.ownership-spec/v1"
+    },
+    {
+      "path": ".l9/repo-contracts.json",
+      "schema": "l9.repo-contracts/v1"
+    }
+  ],
+  "generated_by": "l9-semantic-compiler",
+  "product_ref": "l9.state",
+  "schema": "l9.repo-contracts/v1",
+  "tooling_profile": "python"
+}

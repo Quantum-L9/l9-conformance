@@ -7,4 +7,4 @@ package creates global law, admits a subject, or grants authority.
 """
 
 RUNNER_ID = "l9-conformance/runner"
-RUNNER_VERSION = "0.1.0"
+RUNNER_VERSION = "0.2.0"

@@ -36,7 +36,7 @@ from defusedxml import DefusedXmlException
 from defusedxml.ElementTree import ParseError
 from defusedxml.ElementTree import parse as parse_xml
 
-from l9_conformance import RUNNER_ID, RUNNER_VERSION, harness, ir, ir_v1, node_artifact
+from l9_conformance import RUNNER_ID, RUNNER_VERSION, closure, harness, ir, ir_v1, node_artifact
 from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_canonical, sha256_file
 from l9_conformance.receipt import (
     AUTHORITY,
@@ -45,6 +45,7 @@ from l9_conformance.receipt import (
     SCHEMA_ID,
     Verdict,
     aggregate,
+    birth_gate,
     finalize,
     overall_from_obligations,
 )
@@ -94,6 +95,23 @@ class RunRequest:
     # Governing semantic source files used by the run (e.g. the F1 schemas), as
     # (ref, local path). Each is hashed by raw bytes and recorded; refs must be unique.
     semantic_sources: tuple[tuple[str, Path], ...] = ()
+    # Set only by run_closure: the closure's suite as an in-memory v1 suite binding (its
+    # IR is bound by raw digest in the closure), and the verified closure itself.
+    suite_binding: ir_v1.SuiteBinding | None = None
+    bound_closure: closure.Closure | None = None
+
+
+@dataclass(frozen=True)
+class ClosureRunRequest:
+    """Run an ``l9.conformance-closure/v1`` closure (compiler ``birth-closure`` output)."""
+
+    closure_path: Path
+    product_root: Path
+    source_revision: str | None = None  # when given, must equal the closure's
+    timeout_seconds: float = 120.0
+    python_executable: str = sys.executable
+    catalog_index: Path = CATALOG_INDEX
+    reproduction: str = "python3 scripts/run_conformance.py --closure <closure.json> <inputs>"
 
 
 @dataclass(frozen=True)
@@ -116,6 +134,8 @@ class _Verified:
     profiles: tuple[ir.RefDigest, ...] = ()
     fixture_raw_digest: str = ""
     fixture_semantic_digest: str | None = None
+    # Fixture IR law ref -> declared verification class (v1 law_index), for the birth gate.
+    laws: Mapping[str, str] | None = None
 
 
 def _rel_files(root: Path) -> set[str]:
@@ -271,6 +291,8 @@ def verify_inputs(request: RunRequest) -> _Verified:
             f"derived {bound_source}"
         )
     sources: list[ir.RefDigest] = list(conformance_ir.semantic_sources)
+    if request.bound_closure is not None:
+        sources.extend(request.bound_closure.schema_sources)
     for ref, path in request.semantic_sources:
         if not ref:
             raise RunnerRefusal("semantic source ref must not be empty")
@@ -286,6 +308,13 @@ def verify_inputs(request: RunRequest) -> _Verified:
             harness_binding = harness.bind(request.harness)
         except harness.HarnessRefused as exc:
             raise RunnerRefusal(str(exc)) from exc
+    if request.bound_closure is not None:
+        if harness_binding is None:
+            raise RunnerRefusal("a closure run requires its conformance driver harness")
+        try:
+            closure.check_driver(request.bound_closure, harness_binding)
+        except closure.ClosureRefused as exc:
+            raise RunnerRefusal(f"conformance closure: {exc}") from exc
     return _Verified(
         conformance_ir=conformance_ir,
         artifact=artifact,
@@ -296,7 +325,92 @@ def verify_inputs(request: RunRequest) -> _Verified:
         profiles=tuple(resolved_profiles),
         fixture_raw_digest=fixture_raw,
         fixture_semantic_digest=fixture_semantic,
+        laws=_laws(request, conformance_ir),
     )
+
+
+def _laws(request: RunRequest, conformance_ir: ir.ConformanceIR) -> Mapping[str, str] | None:
+    """A v1 fixture IR's law_index (ref -> verification class), cross-checked with the IR.
+
+    An obligation's verification class is its law's (conformance IR schema); a
+    disagreement is an incoherent IR and refuses. A governing ref absent from the index
+    stays unmapped (recorded as null) and never makes a run birth-passable.
+    """
+    if conformance_ir.schema != ir_v1.SCHEMA:
+        return None
+    document = yaml.safe_load(request.fixture_ir_path.read_bytes())
+    index = (
+        cast(Mapping[str, Any], document).get("law_index")
+        if isinstance(document, Mapping)
+        else None
+    )
+    if not isinstance(index, list):
+        return None
+    laws: dict[str, str] = {}
+    for raw in cast(list[Any], index):
+        if isinstance(raw, Mapping):
+            entry = cast(Mapping[str, Any], raw)
+            ref, vclass = entry.get("law_ref"), entry.get("verification_class")
+            if isinstance(ref, str) and vclass in ir.VERIFICATION_CLASSES:
+                laws[ref] = str(vclass)
+    for obligation in conformance_ir.obligations:
+        for ref in obligation.governing_refs:
+            if ref in laws and laws[ref] != obligation.verification_class:
+                raise RunnerRefusal(
+                    f"obligation {obligation.obligation_id}: verification class "
+                    f"{obligation.verification_class} is not its law {ref}'s {laws[ref]}"
+                )
+    return laws
+
+
+def verify_closure(request: ClosureRunRequest) -> RunRequest:
+    """Verify what an ``l9.conformance-closure/v1`` declares; return the runner's request.
+
+    The returned request carries the closure, so :func:`verify_inputs` then applies every
+    runner check (IR parse, fixture IR semantic digest, suite bytes, node artifact,
+    ruling-D5 harness binding, driver digest) before anything executes.
+    """
+    try:
+        bound = closure.load(request.closure_path)
+        if request.source_revision is not None and request.source_revision != (
+            bound.source_revision
+        ):
+            raise closure.ClosureRefused(
+                f"source revision mismatch: supplied {request.source_revision}, "
+                f"closure {bound.source_revision}"
+            )
+        closure.check_ir(bound)
+        closure.law_index(bound)
+        _check_exact_tree(
+            bound.suite_dir, {f.path: f.sha256 for f in bound.suite_files}, "rendered suite"
+        )
+        closure.check_suite_table(bound)
+        binding = closure.suite_binding(bound)
+        harness_request = closure.harness_request(bound, request.product_root)
+    except closure.ClosureRefused as exc:
+        raise RunnerRefusal(f"conformance closure: {exc}") from exc
+    return RunRequest(
+        ir_path=bound.ir_path,
+        ir_digest=bound.ir_digest,
+        fixture_ir_path=bound.fixture_ir_path,
+        suite_dir=bound.suite_dir,
+        artifact_dir=bound.artifact_dir,
+        artifact_manifest_path=bound.artifact_manifest_path,
+        artifact_manifest_digest=bound.artifact_manifest_digest,
+        source_revision=bound.source_revision,
+        timeout_seconds=request.timeout_seconds,
+        python_executable=request.python_executable,
+        catalog_index=request.catalog_index,
+        reproduction=request.reproduction,
+        harness=harness_request,
+        suite_binding=binding,
+        bound_closure=bound,
+    )
+
+
+def run_closure(request: ClosureRunRequest, *, now: datetime | None = None) -> dict[str, Any]:
+    """Verify and run a compiler closure; the receipt is the same conformance-receipt@1."""
+    return run(verify_closure(request), now=now)
 
 
 def _check_suite_closure(suite_dir: Path, closure_digest: str) -> None:
@@ -325,7 +439,12 @@ def _load_ir(request: RunRequest, ir_bytes: bytes) -> ir.ConformanceIR:
     )
     try:
         if schema != ir_v1.SCHEMA:
+            if request.bound_closure is not None:
+                raise RunnerRefusal(f"a closure's conformance IR must be {ir_v1.SCHEMA}")
             return ir.load(ir_bytes)
+        if request.suite_binding is not None:
+            # The closure binds the IR by raw digest, already verified above.
+            return ir_v1.load(ir_bytes, request.suite_binding)
         if request.suite_binding_path is None or request.suite_binding_digest is None:
             raise RunnerRefusal("a v1 conformance IR requires a digest-bound suite binding")
         if request.ir_semantic_digest is None:
@@ -576,6 +695,12 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
             }
             if reason is not None:
                 entry["reason"] = reason
+            if obligation.governing_refs:
+                laws = verified.laws or {}
+                entry["governing_laws"] = [
+                    {"law_ref": ref, "verification_class": laws.get(ref)}
+                    for ref in obligation.governing_refs
+                ]
             obligations_out.append(entry)
 
     suite_files = [{"path": f.path, "sha256": f.sha256} for f in cir.suite_files]
@@ -632,10 +757,16 @@ def run(request: RunRequest, *, now: datetime | None = None) -> dict[str, Any]:
                 if verified.harness is not None
                 else {}
             ),
+            **(
+                {"conformance_closure": closure.coordinates(request.bound_closure)}
+                if request.bound_closure is not None
+                else {}
+            ),
         },
         "observation_or_outcome": {
             "obligations": obligations_out,
             "overall_verdict": overall_from_obligations(obligations_out),
+            "birth_gate": birth_gate(obligations_out),
         },
         "verification_basis": {
             "isolation": {

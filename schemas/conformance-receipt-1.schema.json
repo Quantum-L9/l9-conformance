@@ -227,6 +227,52 @@
               "$ref": "#/$defs/fileDigests"
             }
           }
+        },
+        "conformance_closure": {
+          "description": "Present when the run consumed a compiler closure (l9.conformance-closure/v1). Binds the raw bytes of closure.json; the closure's authority_status is recorded, never upgraded.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "digest",
+            "suite_binding",
+            "authority_status",
+            "product_manifest_closure_digest",
+            "compiler"
+          ],
+          "properties": {
+            "schema": {
+              "const": "l9.conformance-closure/v1"
+            },
+            "digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "suite_binding": {
+              "const": "pytest/v2"
+            },
+            "authority_status": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "product_manifest_closure_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "compiler": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "version"
+              ],
+              "properties": {
+                "name": {
+                  "$ref": "#/$defs/nonEmpty"
+                },
+                "version": {
+                  "$ref": "#/$defs/nonEmpty"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -295,12 +341,102 @@
                     }
                   }
                 }
+              },
+              "governing_laws": {
+                "description": "The obligation's governing law refs and each law's verification_class as declared in the product's fixture IR law_index; null when the law is not in the index (unmapped).",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "law_ref",
+                    "verification_class"
+                  ],
+                  "properties": {
+                    "law_ref": {
+                      "$ref": "#/$defs/nonEmpty"
+                    },
+                    "verification_class": {
+                      "oneOf": [
+                        {
+                          "enum": [
+                            "fixture_replay",
+                            "static_inspection",
+                            "external_runtime_evidence"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                }
               }
             }
           }
         },
         "overall_verdict": {
           "$ref": "#/$defs/verdict"
+        },
+        "birth_gate": {
+          "description": "Birth-gate classification derived from the obligations alone (CTO ruling, L9-NODE-PIPELINE-01) and re-derived on verification. Evidence classification only: not admission, grants no authority, and never rewrites an unresolved verdict.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "birth_passable",
+            "reasons",
+            "open_evidence_obligations",
+            "rule"
+          ],
+          "properties": {
+            "birth_passable": {
+              "type": "boolean"
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "open_evidence_obligations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "obligation_id",
+                  "law_refs",
+                  "verification_classes"
+                ],
+                "properties": {
+                  "obligation_id": {
+                    "$ref": "#/$defs/nonEmpty"
+                  },
+                  "law_refs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/$defs/nonEmpty"
+                    }
+                  },
+                  "verification_classes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "enum": [
+                        "static_inspection",
+                        "external_runtime_evidence"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "rule": {
+              "const": "birth_passable iff no obligation is fail or error and every unresolved obligation is governed only by laws whose law_index verification_class is static_inspection or external_runtime_evidence; those remain unresolved and are open evidence obligations"
+            }
+          }
         }
       }
     },

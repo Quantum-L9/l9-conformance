@@ -39,3 +39,33 @@ python3 scripts/check_catalog.py --law-root <.github>  # plus trace to pinned la
 ## Conformance runner and receipts
 
 `scripts/run_conformance.py` verifies every bound digest (conformance IR, fixture IR, catalog profiles, rendered suite, node artifact), runs each case in a fresh temporary directory and process, and emits an `l9-conformance/conformance-receipt@1` receipt (`schemas/conformance-receipt-1.schema.json`). A receipt is evidence only: it is not admission and grants no authority.
+
+### Compiler closures (`l9.conformance-closure/v1`)
+
+Since 0.2.0 the runner consumes the conformance closure `l9-semantic-compiler birth-closure` (0.16.0+) writes:
+
+```bash
+python3 scripts/run_conformance.py \
+  --closure <out>/conformance/closure.json \
+  --product-root <product checkout> \
+  --out conformance-receipt.json
+```
+
+Every binding comes from the closure and is verified before anything executes, failing closed on any mismatch or unknown schema/status: the closure fields and contained paths; the conformance IR raw digest and its coordinates (product, fixture IR and closure digests, authority revision, profile refs); the fixture IR semantic digest, subject and `law_index`; the `pytest/v2` suite file set byte-exact and its case table; the node artifact (manifest semantic digest, compilation receipt, exact file set including `birth.artifacts[]`). The product root supplies only the conformance driver harness, bound per ruling D5 (every file under the declared harness root, recorded in `governing_coordinates.harness`); the driver module must hold exactly the closure's `driver_factory.digest`. Cases then run exactly as for a v1 IR (one fresh directory and process per case, verdict from the suite's outcome record cross-checked with JUnit). The receipt records the closure in `governing_coordinates.conformance_closure`. Closures over the v3.40.0 candidate schemas are `candidate_not_admitted`, so the grade is at most `candidate_authority_rehearsal`.
+
+### Birth gate (`observation_or_outcome.birth_gate`)
+
+Every receipt carries a birth-gate classification (CTO ruling, campaign L9-NODE-PIPELINE-01), derived from the recorded obligations alone and re-derived by `verify_receipt`:
+
+- `birth_passable` is true iff no obligation is `fail` or `error`, and every `unresolved` obligation is governed only by laws whose declared `verification_class` in the product's fixture IR `law_index` is `static_inspection` or `external_runtime_evidence` (recorded per obligation in `governing_laws`).
+- Those obligations stay `unresolved` (never rewritten to `pass`) and are listed in `open_evidence_obligations`.
+- An unresolved `fixture_replay` obligation, or an unresolved obligation whose law is not in the law index (`verification_class: null`, or no `governing_laws`), is not passable. `reasons` names every blocker.
+- An obligation's verification class must equal its law's; an IR that relabels one refuses.
+
+`overall_verdict` and the exit code (0 only on `pass`) are unchanged. The birth gate is evidence classification only: it is not admission and grants no authority.
+
+Test data: `testdata/compiled-closures/` is real compiler output (`PROVENANCE.md`; check with `scripts/regen_compiled_closure.py --check`).
+
+### Rehearsal (`scripts/rehearse.py`)
+
+The rehearsal driver takes no path arguments: it reads its plan from the fixed work directory `rehearsal/plan.yaml` (git-ignored) and writes the receipt to `rehearsal/receipt.json`. A plan carrying `out` is refused.

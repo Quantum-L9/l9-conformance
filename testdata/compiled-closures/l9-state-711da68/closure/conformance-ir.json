@@ -1,0 +1,935 @@
+{
+ "authority": {
+  "authority_revision": "Quantum-L9/.github@31b4f4f699becb1437b4804c308650bbad60c00e",
+  "compilation_profile_ref": "l9.compilation/product-build@1",
+  "stage": "conformance"
+ },
+ "fixture_profile": {
+  "profile_refs": [],
+  "status": "absent"
+ },
+ "obligations": [
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.commits_revision_zero",
+     "state.transition.commits_next_revision_with_event"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-ATOMIC-001"
+   ],
+   "id": "obl.STATE-ATOMIC-001",
+   "observable_semantics": "State mutation commits projection, immutable revision, event, and receipt atomically.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.commits_revision_zero",
+    "state.transition.commits_next_revision_with_event"
+   ]
+  },
+  {
+   "disposition": "unresolved",
+   "governing_refs": [
+    "STATE-DOMAIN-001"
+   ],
+   "id": "obl.STATE-DOMAIN-001",
+   "observable_semantics": "State core contains no domain-specific WorkItem/agent/business branches.",
+   "subject_class": "product_invariant",
+   "verification_class": "static_inspection",
+   "witnessed_by": []
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.transition.concurrent_cas_writers_exactly_one_commits",
+     "state.claim.acquires_first_fence",
+     "state.claim.active_claim_requires_exact_fence",
+     "state.claim.foreign_holder_is_refused",
+     "state.claim.second_claim_while_active_conflicts",
+     "state.claim.lease_reassignment_increments_fence",
+     "state.claim.expired_claim_cannot_authorize_writes",
+     "state.renew.extends_lease_with_same_fence",
+     "state.renew.stale_fence_conflicts",
+     "state.renew.expired_claim_conflicts",
+     "state.release.ends_claim_and_fence_stays_monotonic",
+     "state.release.expired_claim_conflicts",
+     "state.claim.tombstoned_object_is_claimable_and_fences_restore"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-FENCE-001"
+   ],
+   "id": "obl.STATE-FENCE-001",
+   "observable_semantics": "Fence lineage is monotonic and stale claims never authorize mutation.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.transition.concurrent_cas_writers_exactly_one_commits",
+    "state.claim.acquires_first_fence",
+    "state.claim.active_claim_requires_exact_fence",
+    "state.claim.foreign_holder_is_refused",
+    "state.claim.second_claim_while_active_conflicts",
+    "state.claim.lease_reassignment_increments_fence",
+    "state.claim.expired_claim_cannot_authorize_writes",
+    "state.renew.extends_lease_with_same_fence",
+    "state.renew.stale_fence_conflicts",
+    "state.renew.expired_claim_conflicts",
+    "state.release.ends_claim_and_fence_stays_monotonic",
+    "state.release.expired_claim_conflicts",
+    "state.claim.tombstoned_object_is_claimable_and_fences_restore"
+   ]
+  },
+  {
+   "disposition": "unresolved",
+   "execution_plan": {
+    "cases": [
+     "state.create.exact_replay_returns_original_receipt",
+     "state.create.operation_collision_has_no_effect",
+     "state.create.transport_idempotency_key_must_match_operation",
+     "state.ack.commits_checkpoint_used_for_resume",
+     "state.operation.inspect.authorization_precedes_replay",
+     "state.operation.inspect.cross_principal_visibility"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-IDEMP-001"
+   ],
+   "id": "obl.STATE-IDEMP-001",
+   "observable_semantics": "One scoped operation ID binds exactly one action and canonical request digest.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.exact_replay_returns_original_receipt",
+    "state.create.operation_collision_has_no_effect",
+    "state.create.transport_idempotency_key_must_match_operation",
+    "state.ack.commits_checkpoint_used_for_resume",
+    "state.operation.inspect.authorization_precedes_replay",
+    "state.operation.inspect.cross_principal_visibility"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.commits_revision_zero",
+     "state.get.current_and_named_revisions",
+     "state.transition.commits_next_revision_with_event",
+     "state.transition.stale_revision_is_sticky_conflict",
+     "state.transition.state_digest_conflict",
+     "state.transition.concurrent_cas_writers_exactly_one_commits",
+     "state.claim.stale_expected_revision_conflicts",
+     "state.tombstone.suppresses_current_read_only",
+     "state.tombstone.object_identity_is_not_reusable",
+     "state.restore.creates_new_active_revision",
+     "state.history.bounded_paging",
+     "state.history.retention_gap_is_history_unavailable"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-REV-001"
+   ],
+   "id": "obl.STATE-REV-001",
+   "observable_semantics": "Revision starts at 0 and increments exactly once per state mutation; object identity is never reused.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.commits_revision_zero",
+    "state.get.current_and_named_revisions",
+    "state.transition.commits_next_revision_with_event",
+    "state.transition.stale_revision_is_sticky_conflict",
+    "state.transition.state_digest_conflict",
+    "state.transition.concurrent_cas_writers_exactly_one_commits",
+    "state.claim.stale_expected_revision_conflicts",
+    "state.tombstone.suppresses_current_read_only",
+    "state.tombstone.object_identity_is_not_reusable",
+    "state.restore.creates_new_active_revision",
+    "state.history.bounded_paging",
+    "state.history.retention_gap_is_history_unavailable"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.unadmitted_schema_is_refused",
+     "state.create.schema_digest_mismatch_is_refused",
+     "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+     "state.create.schema_rejected_payload_is_durable_refusal",
+     "state.transition.schema_rejected_payload_is_durable_refusal"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-SCHEMA-001"
+   ],
+   "id": "obl.STATE-SCHEMA-001",
+   "observable_semantics": "v1 schema binding is immutable per object and schema meaning remains external.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.unadmitted_schema_is_refused",
+    "state.create.schema_digest_mismatch_is_refused",
+    "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+    "state.create.schema_rejected_payload_is_durable_refusal",
+    "state.transition.schema_rejected_payload_is_durable_refusal"
+   ]
+  },
+  {
+   "disposition": "unresolved",
+   "governing_refs": [
+    "STATE-PROVIDER-001"
+   ],
+   "id": "obl.STATE-PROVIDER-001",
+   "observable_semantics": "Public/domain contracts contain no storage-provider syntax or identifiers.",
+   "subject_class": "product_invariant",
+   "verification_class": "static_inspection",
+   "witnessed_by": []
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.commits_revision_zero",
+     "state.transition.commits_next_revision_with_event",
+     "state.list.then_events_cold_resume",
+     "state.events.total_order_within_scope",
+     "state.events.bounded_paging_always_returns_cursor",
+     "state.ack.commits_checkpoint_used_for_resume",
+     "state.events.retention_gap_requires_cold_resync",
+     "state.events.new_consumer_starts_at_retained_floor",
+     "state.ack.regression_is_nondurable_problem"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-JOURNAL-001"
+   ],
+   "id": "obl.STATE-JOURNAL-001",
+   "observable_semantics": "The canonical journal is the sole authoritative mutation-event/outbox source.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.commits_revision_zero",
+    "state.transition.commits_next_revision_with_event",
+    "state.list.then_events_cold_resume",
+    "state.events.total_order_within_scope",
+    "state.events.bounded_paging_always_returns_cursor",
+    "state.ack.commits_checkpoint_used_for_resume",
+    "state.events.retention_gap_requires_cold_resync",
+    "state.events.new_consumer_starts_at_retained_floor",
+    "state.ack.regression_is_nondurable_problem"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.list.then_events_cold_resume",
+     "state.list.cursor_filter_must_match",
+     "state.events.bounded_paging_always_returns_cursor",
+     "state.events.cursor_is_scope_bound",
+     "state.events.cursor_is_consumer_bound",
+     "state.events.tampered_cursor_is_invalid",
+     "state.events.foreign_consumer_requires_authorization",
+     "state.ack.commits_checkpoint_used_for_resume",
+     "state.history.bounded_paging",
+     "state.events.retention_gap_requires_cold_resync"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-CURSOR-001"
+   ],
+   "id": "obl.STATE-CURSOR-001",
+   "observable_semantics": "Public cursors are State-issued and provider-independent.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.list.then_events_cold_resume",
+    "state.list.cursor_filter_must_match",
+    "state.events.bounded_paging_always_returns_cursor",
+    "state.events.cursor_is_scope_bound",
+    "state.events.cursor_is_consumer_bound",
+    "state.events.tampered_cursor_is_invalid",
+    "state.events.foreign_consumer_requires_authorization",
+    "state.ack.commits_checkpoint_used_for_resume",
+    "state.history.bounded_paging",
+    "state.events.retention_gap_requires_cold_resync"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.claim.acquires_first_fence",
+     "state.claim.active_claim_requires_exact_fence",
+     "state.claim.foreign_holder_is_refused",
+     "state.claim.expired_claim_cannot_authorize_writes",
+     "state.claim.holder_without_scope_authorization_is_refused",
+     "state.release.ends_claim_and_fence_stays_monotonic",
+     "state.release.foreign_holder_is_refused",
+     "state.claim.tombstoned_object_is_claimable_and_fences_restore"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-CLAIM-001"
+   ],
+   "id": "obl.STATE-CLAIM-001",
+   "observable_semantics": "Claims coordinate writers but do not grant business authority.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.claim.acquires_first_fence",
+    "state.claim.active_claim_requires_exact_fence",
+    "state.claim.foreign_holder_is_refused",
+    "state.claim.expired_claim_cannot_authorize_writes",
+    "state.claim.holder_without_scope_authorization_is_refused",
+    "state.release.ends_claim_and_fence_stays_monotonic",
+    "state.release.foreign_holder_is_refused",
+    "state.claim.tombstoned_object_is_claimable_and_fences_restore"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.tenants_are_isolated",
+     "state.claim.holder_without_scope_authorization_is_refused",
+     "state.events.cursor_is_scope_bound",
+     "state.events.foreign_consumer_requires_authorization",
+     "state.operation.inspect.authorization_precedes_replay"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-TENANT-001"
+   ],
+   "id": "obl.STATE-TENANT-001",
+   "observable_semantics": "Trusted tenant identity is transport-derived and present in every persistence key.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.tenants_are_isolated",
+    "state.claim.holder_without_scope_authorization_is_refused",
+    "state.events.cursor_is_scope_bound",
+    "state.events.foreign_consumer_requires_authorization",
+    "state.operation.inspect.authorization_precedes_replay"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.get.current_and_named_revisions",
+     "state.read.observations_create_no_receipt"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-READ-001"
+   ],
+   "id": "obl.STATE-READ-001",
+   "observable_semantics": "Read observations do not create durable mutation receipts.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.get.current_and_named_revisions",
+    "state.read.observations_create_no_receipt"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.claim.lease_reassignment_increments_fence",
+     "state.claim.expired_claim_cannot_authorize_writes",
+     "state.renew.expired_claim_conflicts",
+     "state.release.expired_claim_conflicts",
+     "state.history.retention_gap_is_history_unavailable",
+     "state.events.retention_gap_requires_cold_resync",
+     "state.events.new_consumer_starts_at_retained_floor"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-RETENTION-001"
+   ],
+   "id": "obl.STATE-RETENTION-001",
+   "observable_semantics": "TTL cleanup is never semantic authority for leases, operations, tombstones, or erasure.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.claim.lease_reassignment_increments_fence",
+    "state.claim.expired_claim_cannot_authorize_writes",
+    "state.renew.expired_claim_conflicts",
+    "state.release.expired_claim_conflicts",
+    "state.history.retention_gap_is_history_unavailable",
+    "state.events.retention_gap_requires_cold_resync",
+    "state.events.new_consumer_starts_at_retained_floor"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.ambiguous_commit_reconciles_by_receipt",
+     "state.operation.inspect.reports_found_and_not_found"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-RECOVERY-001"
+   ],
+   "id": "obl.STATE-RECOVERY-001",
+   "observable_semantics": "Ambiguous mutation completion is reconciled by operation receipt before retry.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.ambiguous_commit_reconciles_by_receipt",
+    "state.operation.inspect.reports_found_and_not_found"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.events.total_order_within_scope"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-EVENT-001"
+   ],
+   "id": "obl.STATE-EVENT-001",
+   "observable_semantics": "Journal order is total within scope only.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.events.total_order_within_scope"
+   ]
+  },
+  {
+   "disposition": "unresolved",
+   "execution_plan": {
+    "cases": [
+     "state.create.transport_idempotency_key_must_match_operation",
+     "state.erase.is_not_a_gate_action"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-GATE-001"
+   ],
+   "id": "obl.STATE-GATE-001",
+   "observable_semantics": "All inter-node traffic is Gate-mediated.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.transport_idempotency_key_must_match_operation",
+    "state.erase.is_not_a_gate_action"
+   ]
+  },
+  {
+   "disposition": "unresolved",
+   "governing_refs": [
+    "STATE-BIRTH-001"
+   ],
+   "id": "obl.STATE-BIRTH-001",
+   "observable_semantics": "l9-state never owns repository/node birth machinery.",
+   "subject_class": "product_invariant",
+   "verification_class": "static_inspection",
+   "witnessed_by": []
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.list.then_events_cold_resume"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-EVENT-OPT-001"
+   ],
+   "id": "obl.STATE-EVENT-OPT-001",
+   "observable_semantics": "Push/change-stream execution is deferred until it proves leverage; correctness uses durable journal polling.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.list.then_events_cold_resume"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.precommit_deadline_has_no_durable_receipt",
+     "state.get.read_deadline_is_retry_later",
+     "state.list.read_deadline_is_retry_later",
+     "state.events.read_deadline_is_retry_later",
+     "state.history.read_deadline_is_retry_later",
+     "state.operation.inspect.read_deadline_is_retry_later"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-BUDGET-001"
+   ],
+   "id": "obl.STATE-BUDGET-001",
+   "observable_semantics": "Gate timeout is the sole request-budget authority; State may shrink but never extend it.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.precommit_deadline_has_no_durable_receipt",
+    "state.get.read_deadline_is_retry_later",
+    "state.list.read_deadline_is_retry_later",
+    "state.events.read_deadline_is_retry_later",
+    "state.history.read_deadline_is_retry_later",
+    "state.operation.inspect.read_deadline_is_retry_later"
+   ]
+  },
+  {
+   "disposition": "unresolved",
+   "governing_refs": [
+    "STATE-BUDGET-002"
+   ],
+   "id": "obl.STATE-BUDGET-002",
+   "observable_semantics": "Provider retries, transaction retries, commit attempts, and reconciliation never outlive ExecutionBudget.",
+   "subject_class": "product_invariant",
+   "verification_class": "external_runtime_evidence",
+   "witnessed_by": []
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.exact_replay_returns_original_receipt",
+     "state.create.ambiguous_commit_reconciles_by_receipt",
+     "state.transition.concurrent_cas_writers_exactly_one_commits",
+     "state.operation.inspect.reports_found_and_not_found",
+     "state.operation.inspect.cross_principal_visibility"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-OUTCOME-001"
+   ],
+   "id": "obl.STATE-OUTCOME-001",
+   "observable_semantics": "An admitted OperationKey has at most one durable terminal receipt.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.exact_replay_returns_original_receipt",
+    "state.create.ambiguous_commit_reconciles_by_receipt",
+    "state.transition.concurrent_cas_writers_exactly_one_commits",
+    "state.operation.inspect.reports_found_and_not_found",
+    "state.operation.inspect.cross_principal_visibility"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.commits_revision_zero",
+     "state.create.existing_object_is_sticky_conflict",
+     "state.create.unadmitted_schema_is_refused",
+     "state.create.unadmitted_retention_is_refused",
+     "state.transition.stale_revision_is_sticky_conflict",
+     "state.transition.state_digest_conflict",
+     "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+     "state.transition.missing_object_is_durable_conflict",
+     "state.claim.missing_object_conflicts",
+     "state.create.schema_rejected_payload_is_durable_refusal",
+     "state.transition.schema_rejected_payload_is_durable_refusal"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-OUTCOME-002"
+   ],
+   "id": "obl.STATE-OUTCOME-002",
+   "observable_semantics": "Committed, conflict, and refused are terminal receipt states; expected mutation outcomes are data.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.commits_revision_zero",
+    "state.create.existing_object_is_sticky_conflict",
+    "state.create.unadmitted_schema_is_refused",
+    "state.create.unadmitted_retention_is_refused",
+    "state.transition.stale_revision_is_sticky_conflict",
+    "state.transition.state_digest_conflict",
+    "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+    "state.transition.missing_object_is_durable_conflict",
+    "state.claim.missing_object_conflicts",
+    "state.create.schema_rejected_payload_is_durable_refusal",
+    "state.transition.schema_rejected_payload_is_durable_refusal"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.exact_replay_returns_original_receipt",
+     "state.create.existing_object_is_sticky_conflict",
+     "state.transition.stale_revision_is_sticky_conflict",
+     "state.transition.changed_world_retry_needs_new_operation",
+     "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+     "state.create.schema_rejected_payload_is_durable_refusal"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-OUTCOME-003"
+   ],
+   "id": "obl.STATE-OUTCOME-003",
+   "observable_semantics": "A terminal OperationKey is never re-evaluated; changed-world retry requires a new operation_id.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.exact_replay_returns_original_receipt",
+    "state.create.existing_object_is_sticky_conflict",
+    "state.transition.stale_revision_is_sticky_conflict",
+    "state.transition.changed_world_retry_needs_new_operation",
+    "state.transition.schema_binding_is_immutable_and_refusal_sticky",
+    "state.create.schema_rejected_payload_is_durable_refusal"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.ambiguous_commit_reconciles_by_receipt"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-AMBIGUITY-001"
+   ],
+   "id": "obl.STATE-AMBIGUITY-001",
+   "observable_semantics": "Once commit may have occurred, semantic execution stops and only authoritative reconciliation is allowed.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.ambiguous_commit_reconciles_by_receipt"
+   ]
+  },
+  {
+   "disposition": "unresolved",
+   "execution_plan": {
+    "cases": [
+     "state.create.operation_collision_has_no_effect",
+     "state.create.malformed_request_is_nondurable_problem",
+     "state.create.transport_idempotency_key_must_match_operation",
+     "state.create.precommit_deadline_has_no_durable_receipt",
+     "state.create.storage_unavailable_precommit_is_same_operation_retry",
+     "state.get.missing_object_is_problem",
+     "state.get.storage_unavailable_read_is_retry_later",
+     "state.history.missing_object_is_problem",
+     "state.ack.regression_is_nondurable_problem",
+     "state.get.read_deadline_is_retry_later",
+     "state.list.read_deadline_is_retry_later",
+     "state.events.read_deadline_is_retry_later",
+     "state.history.read_deadline_is_retry_later",
+     "state.operation.inspect.read_deadline_is_retry_later"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-PROBLEM-001"
+   ],
+   "id": "obl.STATE-PROBLEM-001",
+   "observable_semantics": "StateProblem is never persisted as an authoritative operation receipt.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.operation_collision_has_no_effect",
+    "state.create.malformed_request_is_nondurable_problem",
+    "state.create.transport_idempotency_key_must_match_operation",
+    "state.create.precommit_deadline_has_no_durable_receipt",
+    "state.create.storage_unavailable_precommit_is_same_operation_retry",
+    "state.get.missing_object_is_problem",
+    "state.get.storage_unavailable_read_is_retry_later",
+    "state.history.missing_object_is_problem",
+    "state.ack.regression_is_nondurable_problem",
+    "state.get.read_deadline_is_retry_later",
+    "state.list.read_deadline_is_retry_later",
+    "state.events.read_deadline_is_retry_later",
+    "state.history.read_deadline_is_retry_later",
+    "state.operation.inspect.read_deadline_is_retry_later"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.malformed_request_is_nondurable_problem",
+     "state.create.precommit_deadline_has_no_durable_receipt",
+     "state.create.storage_unavailable_precommit_is_same_operation_retry",
+     "state.get.storage_unavailable_read_is_retry_later",
+     "state.get.read_deadline_is_retry_later",
+     "state.list.read_deadline_is_retry_later",
+     "state.events.read_deadline_is_retry_later",
+     "state.history.read_deadline_is_retry_later",
+     "state.operation.inspect.read_deadline_is_retry_later"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-RETRY-001"
+   ],
+   "id": "obl.STATE-RETRY-001",
+   "observable_semantics": "retry_class describes retry safety, not workflow recovery.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.malformed_request_is_nondurable_problem",
+    "state.create.precommit_deadline_has_no_durable_receipt",
+    "state.create.storage_unavailable_precommit_is_same_operation_retry",
+    "state.get.storage_unavailable_read_is_retry_later",
+    "state.get.read_deadline_is_retry_later",
+    "state.list.read_deadline_is_retry_later",
+    "state.events.read_deadline_is_retry_later",
+    "state.history.read_deadline_is_retry_later",
+    "state.operation.inspect.read_deadline_is_retry_later"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.existing_object_is_sticky_conflict",
+     "state.transition.changed_world_retry_needs_new_operation"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-RETRY-002"
+   ],
+   "id": "obl.STATE-RETRY-002",
+   "observable_semantics": "Recovery after a terminal receipt is reason-code guidance and uses a new operation identity.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.existing_object_is_sticky_conflict",
+    "state.transition.changed_world_retry_needs_new_operation"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.transition.tombstoned_object_is_refused",
+     "state.tombstone.suppresses_current_read_only",
+     "state.tombstone.already_tombstoned_is_refused",
+     "state.tombstone.object_identity_is_not_reusable",
+     "state.restore.creates_new_active_revision",
+     "state.erase.scrubs_payload_preserves_identity_and_replay"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-LIFECYCLE-001"
+   ],
+   "id": "obl.STATE-LIFECYCLE-001",
+   "observable_semantics": "v1 lifecycle is active -> tombstoned -> active by retained restore; erased is terminal.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.transition.tombstoned_object_is_refused",
+    "state.tombstone.suppresses_current_read_only",
+    "state.tombstone.already_tombstoned_is_refused",
+    "state.tombstone.object_identity_is_not_reusable",
+    "state.restore.creates_new_active_revision",
+    "state.erase.scrubs_payload_preserves_identity_and_replay"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.restore.creates_new_active_revision",
+     "state.restore.active_object_conflicts",
+     "state.restore.source_must_be_retained_prior_revision",
+     "state.claim.tombstoned_object_is_claimable_and_fences_restore"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-RESTORE-001"
+   ],
+   "id": "obl.STATE-RESTORE-001",
+   "observable_semantics": "Restore requires a retained prior revision of the same tombstoned object and always creates a new active revision.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.restore.creates_new_active_revision",
+    "state.restore.active_object_conflicts",
+    "state.restore.source_must_be_retained_prior_revision",
+    "state.claim.tombstoned_object_is_claimable_and_fences_restore"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.erase.scrubs_payload_preserves_identity_and_replay"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-ERASE-001"
+   ],
+   "id": "obl.STATE-ERASE-001",
+   "observable_semantics": "Hard erase scrubs retained payload bytes while preserving object identity, revision continuity, fence lineage, journal metadata, and operation replay safety.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.erase.scrubs_payload_preserves_identity_and_replay"
+   ]
+  },
+  {
+   "disposition": "executable",
+   "execution_plan": {
+    "cases": [
+     "state.create.unadmitted_retention_is_refused",
+     "state.erase.scrubs_payload_preserves_identity_and_replay",
+     "state.erase.is_not_a_gate_action"
+    ],
+    "isolation": "fresh_subject_per_case",
+    "mode": "fixture_replay",
+    "verdict_rule": "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+   },
+   "governing_refs": [
+    "STATE-RETENTION-002"
+   ],
+   "id": "obl.STATE-RETENTION-002",
+   "observable_semantics": "State executes hard-erasure mechanics only from externally authorized retention decisions and never invents retention policy.",
+   "subject_class": "product_invariant",
+   "verification_class": "fixture_replay",
+   "witnessed_by": [
+    "state.create.unadmitted_retention_is_refused",
+    "state.erase.scrubs_payload_preserves_identity_and_replay",
+    "state.erase.is_not_a_gate_action"
+   ]
+  }
+ ],
+ "provenance": {
+  "closure_digest": "sha256:7e0322e284428775ae832205e2ed271792028ae563d065ea863a78360a69f3b1",
+  "compiler": {
+   "compiler_version": "0.16.0"
+  },
+  "conformance_model_ref": "l9.conformance-model/global@1",
+  "fixture_ir_digest": "sha256:f627abb24bcea28a752dd72f1376e9087322f8a13b3bd9beb1099a59a61a21e7"
+ },
+ "schema": "l9.conformance-ir/v1",
+ "subject": {
+  "closure_digest": "sha256:7e0322e284428775ae832205e2ed271792028ae563d065ea863a78360a69f3b1",
+  "fixture_ir_digest": "sha256:f627abb24bcea28a752dd72f1376e9087322f8a13b3bd9beb1099a59a61a21e7",
+  "product_ref": "l9.state"
+ },
+ "unknowns": [
+  {
+   "id": "unk.fixture-profile",
+   "kind": "fixture_profile_absent",
+   "reason": "The product declares no fixture profile; no profile requirement is claimed satisfied.",
+   "subject": "l9.state"
+  }
+ ],
+ "unresolved": [
+  {
+   "obligation_ref": "obl.STATE-DOMAIN-001",
+   "reason": "verification class static_inspection is never proven by fixture replay",
+   "result": "unresolved"
+  },
+  {
+   "obligation_ref": "obl.STATE-IDEMP-001",
+   "reason": "a witness case is unresolved or none is executable",
+   "result": "unresolved"
+  },
+  {
+   "obligation_ref": "obl.STATE-PROVIDER-001",
+   "reason": "verification class static_inspection is never proven by fixture replay",
+   "result": "unresolved"
+  },
+  {
+   "obligation_ref": "obl.STATE-GATE-001",
+   "reason": "a witness case is unresolved or none is executable",
+   "result": "unresolved"
+  },
+  {
+   "obligation_ref": "obl.STATE-BIRTH-001",
+   "reason": "verification class static_inspection is never proven by fixture replay",
+   "result": "unresolved"
+  },
+  {
+   "obligation_ref": "obl.STATE-BUDGET-002",
+   "reason": "verification class external_runtime_evidence is never proven by fixture replay",
+   "result": "unresolved"
+  },
+  {
+   "obligation_ref": "obl.STATE-PROBLEM-001",
+   "reason": "a witness case is unresolved or none is executable",
+   "result": "unresolved"
+  }
+ ]
+}

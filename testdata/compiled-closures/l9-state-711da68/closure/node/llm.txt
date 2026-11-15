@@ -1,0 +1,44 @@
+<!-- l9:compiled-document schema=l9.compiled-documents/v1 document=llm.txt generator=l9-semantic-compiler binding=l9.binding/node-birth-package@1 authority_status=candidate_not_admitted -->
+<!-- Compiled from the node's semantic inputs. Do not edit: a hand edit outside the product-prose region is drift. Regenerate with l9-semantic-compiler. -->
+
+# l9-state
+
+> Serve as the canonical source repository for the l9.state Node implementation, its public State contracts, and its validation fixtures.
+
+- repository: `Quantum-L9/l9-state`
+- product: `l9.state`
+- kind: `node`
+- archetype: `l9.node-archetype/authoritative-state@1`
+- repository status: `candidate`
+- product status: `candidate`
+- kind requires: `independent_runtime_identity`, `independent_health_and_readiness`, `canonical_constellation_communication`, `gate_routed_inter_product_work`, `runtime_admission`, `actor_identity_when_consequential_authorship_exists`, `surface_identity_when_multiple_execution_surfaces_exist`
+
+## Actions
+
+- `state.create`: `urn:l9:state:StateCreateRequest:1.0` -> `urn:l9:state:StateReceipt:1.0`
+- `state.get`: `urn:l9:state:StateReadRequest:1.0` -> `urn:l9:state:StateReadResult:1.0`
+- `state.transition`: `urn:l9:state:StateTransitionRequest:1.0` -> `urn:l9:state:StateReceipt:1.0`
+- `state.tombstone`: `urn:l9:state:StateTombstoneRequest:1.0` -> `urn:l9:state:StateReceipt:1.0`
+- `state.restore`: `urn:l9:state:StateRestoreRequest:1.0` -> `urn:l9:state:StateReceipt:1.0`
+- `state.claim`: `urn:l9:state:StateClaimRequest:1.0` -> `urn:l9:state:StateClaimReceipt:1.0`
+- `state.renew`: `urn:l9:state:StateRenewRequest:1.0` -> `urn:l9:state:StateClaimReceipt:1.0`
+- `state.release`: `urn:l9:state:StateReleaseRequest:1.0` -> `urn:l9:state:StateClaimReceipt:1.0`
+- `state.list`: `urn:l9:state:StateListRequest:1.0` -> `urn:l9:state:StateListPage:1.0`
+- `state.events`: `urn:l9:state:StateEventReadRequest:1.0` -> `urn:l9:state:StateEventPage:1.0`
+- `state.ack`: `urn:l9:state:StateAckRequest:1.0` -> `urn:l9:state:StateAckReceipt:1.0`
+- `state.history`: `urn:l9:state:StateHistoryRequest:1.0` -> `urn:l9:state:StateHistoryPage:1.0`
+- `state.operation.inspect`: `urn:l9:state:StateOperationInspectRequest:1.0` -> `urn:l9:state:StateOperationInspectResult:1.0`
+
+## Documents
+
+- [README.md](README.md): purpose, actions, running
+- [ARCHITECTURE.md](ARCHITECTURE.md): ports, adapters, Gate law, conformance
+- [AGENTS.md](AGENTS.md): agent rules, authority order, execution phases
+
+## Contracts
+
+- `.l9/architecture.yaml` (`l9.architecture-spec/v1`)
+- `.l9/ci.json` (`l9.ci-consumer/v1`)
+- `.l9/gate-registration.json` (`l9.gate-registration-manifest/v1`)
+- `.l9/ownership.yaml` (`l9.ownership-spec/v1`)
+- `.l9/repo-contracts.json` (`l9.repo-contracts/v1`)

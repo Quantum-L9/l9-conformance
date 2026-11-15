@@ -1,0 +1,224 @@
+actions:
+- state.create
+- state.get
+- state.transition
+- state.tombstone
+- state.restore
+- state.claim
+- state.renew
+- state.release
+- state.list
+- state.events
+- state.ack
+- state.history
+- state.operation.inspect
+authority_revision: Quantum-L9/.github@dcd9d0092740756c19ac681d399bd438409bdc52
+authority_status: candidate_not_admitted
+birth:
+  artifacts:
+  - digest: sha256:233cfa832e603f32034eac7cbc79745b417e3af06a7b9360c3773fe9a7129fe1
+    path: .l9/architecture.yaml
+  - digest: sha256:7e74fa2a3247ff0d175f8343f62492cf3e2c81691373236cd12fd0fa31756a2c
+    path: .l9/ci.json
+  - digest: sha256:368e2194594ce7b1f91b84696d51833045c907358ec8c28ecc0b083b3826b118
+    path: .l9/gate-registration.json
+  - digest: sha256:052bb944aed73e1e369bd1bbc7c638b9fecbf931c3179354999016807dace938
+    path: .l9/ownership.yaml
+  - digest: sha256:e8c70c29b67203cc052d6130c1a5462674adb65b49e256cc89a583279ae05f92
+    path: .l9/repo-contracts.json
+  - digest: sha256:e1860d20befc8d16e2fea82353f6682e45fb7b2186e4385ead26745b12125f56
+    path: AGENTS.md
+  - digest: sha256:382cfe6a0e6aed2efe79af4dd64af2569033336020db8be4c3be13d5c87f50cb
+    path: ARCHITECTURE.md
+  - digest: sha256:e34afd681b3b9e8c68fe87011848b1e0ddb25cd8d7a14a26ae3886c141623ab6
+    path: README.md
+  - digest: sha256:b98f67f7dff6fbe9b700579e303978effb150360c29e04a4de89f97c31dcd753
+    path: Repo.mk
+  - digest: sha256:94a8419c3eefd16ad5e9211c631bf4749f9e0521154d234aacf89526fb4b8629
+    path: llm.txt
+  authority_status: candidate_not_admitted
+  binding: l9.binding/node-birth-package@1
+  generated_obligations: []
+  unknowns:
+  - blocks: Dockerfile
+    field: image build contract
+    reason: l9.binding/python-gate-node@1 determines no base image, interpreter build
+      or serving command
+  - blocks: .l9/deployment.yaml
+    field: l9-deploy deployment-profile/v2
+    reason: the l9-deploy v2 deployment-profile schema is not an input of this compiler;
+      the product-determined section of .l9/deployment.yaml is not emitted until it
+      is bound
+  - blocks: src/l9_state_node/asgi.py, .l9/node-runtime.json
+    field: node_runtime
+    reason: the RepositorySpec declares no node_runtime construction graph, so the
+      inbound implementation and its adapters cannot be constructed
+bound:
+- actions:
+  - state.create
+  - state.get
+  - state.transition
+  - state.tombstone
+  - state.restore
+  - state.claim
+  - state.renew
+  - state.release
+  - state.list
+  - state.events
+  - state.ack
+  - state.history
+  - state.operation.inspect
+  adapter_ref: urn:l9:state:adapter:GateSDK:1.0
+  implementation: l9_state.service.StateService
+  implementation_ref: src/l9_state/service.py::StateService
+  port_ref: urn:l9:state:port:GateActions:1.0
+  registration: l9_state.bindings.gate.bind_handlers
+  registration_ref: src/l9_state/bindings/gate.py::bind_handlers
+conformance:
+  status: stage_12_not_compiled
+consequential_actions:
+- state.create
+- state.transition
+- state.tombstone
+- state.restore
+- state.claim
+- state.renew
+- state.release
+- state.ack
+distribution:
+  extras:
+  - server
+  import_coverage:
+    constellation_node_sdk:
+      group: base
+      requirement: constellation-node-sdk @ git+https://github.com/Quantum-L9/Gate_SDK.git@v1
+    fastapi:
+      group: base
+      requirement: fastapi>=0.115.0
+    pydantic:
+      group: base
+      requirement: pydantic>=2.9.0
+    pymongo:
+      extras:
+      - server
+      group: extra
+      requirements:
+      - pymongo==4.18.2
+    rfc8785:
+      group: base
+      requirement: rfc8785==0.1.4
+  name: l9-state-node
+  name_status: owner_confirmed
+  packages:
+  - l9_state
+  - l9_state.adapters
+  - l9_state.bindings
+  - l9_state_node
+  pyproject:
+    digest: sha256:73b4f4663511f996e96a0118843317302823bfd0ca7b0a0f4d5227cbe41b5d75
+    path: pyproject.toml
+  status: declared
+  version: 0.1.0
+  version_source: packaging.version
+  version_source_status: owner_confirmed
+forbidden_actions:
+- state.hard_erase
+- state.hard_delete
+generated:
+- artifact_ref: l9.binding/python-gate-node@1#src/l9_state_node/__init__.py
+  digest: sha256:af7780bdb3a75adf9ed1aefa91adbf67d6fb525e901811a505f4fd956daafddf
+  path: src/l9_state_node/__init__.py
+  target_ir_digest: sha256:e791fc2ee26fb3dc5c1a8533034eb7ede9f75f20c3057846be5184fd295fb941
+- artifact_ref: l9.binding/python-gate-node@1#src/l9_state_node/composition.py
+  digest: sha256:15e4e1e789a8a258ae86455c0ef0458c265bcf3fa5f115c2d6c0bdffcf40bc8a
+  path: src/l9_state_node/composition.py
+  target_ir_digest: sha256:80a4e5403ce715b6345d15e04fd8dd3ac03ab52e103ccc7642c09f1beaed4ba9
+implementation_ir_digest: sha256:0fce9d0d4972b92316ca745ed1ab4bd4182add880c4b982a22ca8ff2987be0e6
+manifest_digest: sha256:81fb57d4d59f74a34bbd811dd84956e4faf5af6475b36b73f010ca571bd84954
+obligations:
+  bound:
+  - state.create
+  - state.get
+  - state.transition
+  - state.tombstone
+  - state.restore
+  - state.claim
+  - state.renew
+  - state.release
+  - state.list
+  - state.events
+  - state.ack
+  - state.history
+  - state.operation.inspect
+  generated:
+  - composition_root
+  - runtime_configuration
+  unresolved_optional:
+  - urn:l9:state:port:ScopeAuthorization:1.0
+package: l9_state_node
+packaging:
+  closure: static_import
+  excluded_harness_roots:
+  - src/l9_state_conformance_harness/
+  external_modules:
+  - __future__
+  - asyncio
+  - base64
+  - collections
+  - constellation_node_sdk
+  - copy
+  - dataclasses
+  - datetime
+  - fastapi
+  - hashlib
+  - hmac
+  - json
+  - pydantic
+  - pymongo
+  - rfc8785
+  - secrets
+  - time
+  - typing
+  - uuid
+  included_bound_sources:
+  - digest: sha256:cfa08333b82465bf45c23cfdba335ba0779baefb004e2c2f0ce32ff8eb95ebd7
+    path: src/l9_state/__init__.py
+  - digest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    path: src/l9_state/adapters/__init__.py
+  - digest: sha256:a35da2d6151d550830a69a5a8a133b2955dd5ec6ec5f5da1728854fecac81fc2
+    path: src/l9_state/adapters/memory.py
+  - digest: sha256:bde735f785d1790e4e31311aed5ccfbe8c53ded382531138d6906e035c7b7cfd
+    path: src/l9_state/adapters/mongodb.py
+  - digest: sha256:b0695cdd7e8b8b58f25fca71d270d04412e54383ad4c841edcc3cbd53f4b8fe7
+    path: src/l9_state/adapters/mongodb_contract.py
+  - digest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    path: src/l9_state/bindings/__init__.py
+  - digest: sha256:1bc84e96bcf4dea40ff67c378150d554dbbd6dd261d8f0ebea9a8c84d8c8cfca
+    path: src/l9_state/bindings/gate.py
+  - digest: sha256:1f0424f68a2497ed5ba3fc7984ce7c631bdbb4b837b3b8d0325a194ac348697e
+    path: src/l9_state/catalog.py
+  - digest: sha256:2f839377ce7e73389b3e2fc59acca312486262a1fba8a94cfc23d0c4a172df94
+    path: src/l9_state/cursor.py
+  - digest: sha256:0abb2a7b99cf88f8ee23f5776861f2edcbe1e552753b01acf042a424bcdbcf5c
+    path: src/l9_state/digests.py
+  - digest: sha256:ba77dc1498a3094e20aed290df7f4bd52454d98e01c11423733754c72218f92a
+    path: src/l9_state/errors.py
+  - digest: sha256:680c4fddb328a5b22475365053f093347a37b1aa6d885e2f1380a3d0c01a0209
+    path: src/l9_state/execution.py
+  - digest: sha256:059d6535c9b1a8f6da66160eaa559cfe790ddd353597ee42dcb912efe38b735b
+    path: src/l9_state/internal_models.py
+  - digest: sha256:868f3ebcd5c3bf1fa904ccbca7e7a87d2507f351243e343ecae68c973da65769
+    path: src/l9_state/lifecycle.py
+  - digest: sha256:7262ddcb3fd840e1d145b4a8f96c5f9e8c6598c62ab2daa6b5786bdc4baa5e17
+    path: src/l9_state/models.py
+  - digest: sha256:8c8cdf27df496973aece2acad2a4a1a35c080da42f2340129892c2b324757829
+    path: src/l9_state/outcomes.py
+  - digest: sha256:a734082e411ef1fe25f8235ededf850e45993d997c7fd115bed0f4d08615ed07
+    path: src/l9_state/ports.py
+  - digest: sha256:8a3193ffe8598cd4891cadaded5168251ee0a882b6d30344f7614674cfaae061
+    path: src/l9_state/service.py
+  mode: INCLUDE_VERIFIED_BOUND_SOURCE
+product_ref: l9.state
+realized: false
+schema: l9.semantic-compiler.node-artifact-manifest/v1
+target_binding: l9.binding/python-gate-node@1

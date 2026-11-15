@@ -108,6 +108,57 @@ def finalize(body: Mapping[str, Any]) -> dict[str, Any]:
     return receipt
 
 
+# Birth-gate verdict policy (CTO ruling, campaign L9-NODE-PIPELINE-01): a run is
+# birth-passable iff no obligation is fail or error, and every unresolved obligation is
+# governed only by laws whose declared verification class (the product's fixture IR
+# law_index) is one fixture replay can never prove. Those stay unresolved in the receipt
+# and are listed as open evidence obligations. This classifies evidence; it is not
+# admission and grants no authority.
+OPEN_EVIDENCE_CLASSES: Final = frozenset({"static_inspection", "external_runtime_evidence"})
+BIRTH_GATE_RULE: Final = (
+    "birth_passable iff no obligation is fail or error and every unresolved obligation is "
+    "governed only by laws whose law_index verification_class is static_inspection or "
+    "external_runtime_evidence; those remain unresolved and are open evidence obligations"
+)
+
+
+def birth_gate(obligations: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
+    """Derive the birth gate from the recorded obligations alone (re-derivable on verify)."""
+    reasons: list[str] = []
+    open_obligations: list[dict[str, Any]] = []
+    seen = False
+    for obligation in obligations:
+        seen = True
+        oid, verdict = obligation["obligation_id"], obligation["verdict"]
+        if verdict in ("fail", "error"):
+            reasons.append(f"{oid}: verdict {verdict}")
+            continue
+        if verdict != "unresolved":
+            continue
+        laws = cast(list[Mapping[str, Any]], obligation.get("governing_laws") or [])
+        classes = [law["verification_class"] for law in laws]
+        if not laws or any(c is None for c in classes):
+            reasons.append(f"{oid}: unresolved and not mapped to a law of the law index")
+        elif any(c not in OPEN_EVIDENCE_CLASSES for c in classes):
+            reasons.append(f"{oid}: unresolved under a {'/'.join(sorted(set(classes)))} law")
+        else:
+            open_obligations.append(
+                {
+                    "obligation_id": oid,
+                    "law_refs": [law["law_ref"] for law in laws],
+                    "verification_classes": sorted(set(classes)),
+                }
+            )
+    if not seen:
+        reasons.append("no obligation was evaluated")
+    return {
+        "birth_passable": not reasons,
+        "reasons": reasons,
+        "open_evidence_obligations": open_obligations,
+        "rule": BIRTH_GATE_RULE,
+    }
+
+
 def _verify_verdicts(outcome: Mapping[str, Any]) -> None:
     """Re-derive every obligation verdict from its cases, and the overall verdict."""
     obligations = cast(list[Mapping[str, Any]], outcome["obligations"])
@@ -131,6 +182,8 @@ def _verify_verdicts(outcome: Mapping[str, Any]) -> None:
         raise ReceiptInvalid(
             f"overall_verdict recorded {outcome['overall_verdict']}, derived {derived_overall}"
         )
+    if "birth_gate" in outcome and outcome["birth_gate"] != birth_gate(obligations):
+        raise ReceiptInvalid("birth_gate is not derived from the recorded obligations")
 
 
 def verify_receipt(receipt: Mapping[str, Any]) -> None:

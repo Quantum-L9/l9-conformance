@@ -190,7 +190,8 @@ def _obligation(o: Mapping[str, Any], where: str, unresolved: Mapping[str, str])
     oid = _s(o, "id", where)
     if o.get("subject_class") not in _SUBJECT_CLASSES:
         raise ir.IRInvalid(f"{where}.subject_class not in closed set")
-    if not _l(o.get("governing_refs"), f"{where}.governing_refs"):
+    governing_refs = [str(r) for r in _l(o.get("governing_refs"), f"{where}.governing_refs")]
+    if not governing_refs:
         raise ir.IRInvalid(f"{where}.governing_refs must not be empty")
     vclass = o.get("verification_class")
     if vclass not in ir.VERIFICATION_CLASSES:
@@ -215,6 +216,7 @@ def _obligation(o: Mapping[str, Any], where: str, unresolved: Mapping[str, str])
         cases=tuple(cases),
         disposition=str(disposition),
         unresolved_reason=unresolved.get(oid),
+        governing_refs=tuple(governing_refs),
     )
 
 
