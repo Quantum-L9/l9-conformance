@@ -241,13 +241,7 @@ def _load_synthetic(artifact_dir: Path, manifest_path: Path, expected: str) -> N
     )
 
 
-def _load_source_subject(artifact_dir: Path, manifest_path: Path, expected: str) -> NodeArtifact:
-    digest = sha256_file(manifest_path)
-    if digest != expected:
-        raise ArtifactRefused(
-            f"artifact manifest digest mismatch: bound {expected}, actual {digest}"
-        )
-    manifest = _load_yaml_mapping(manifest_path, "artifact manifest")
+def _check_source_coordinates(manifest: Mapping[str, Any]) -> None:
     revision = manifest.get("source_revision")
     repo, sep, rev = str(revision).rpartition("@")
     if (
@@ -262,6 +256,9 @@ def _load_source_subject(artifact_dir: Path, manifest_path: Path, expected: str)
     if not isinstance(source_path, str):
         raise ArtifactRefused("source subject: source_path missing")
     _contained(source_path, "source subject source_path")
+
+
+def _source_packages(manifest: Mapping[str, Any]) -> list[str]:
     raw_packages = manifest.get("packages")
     if not isinstance(raw_packages, list) or not raw_packages:
         raise ArtifactRefused("source subject: packages must be a non-empty list")
@@ -270,6 +267,18 @@ def _load_source_subject(artifact_dir: Path, manifest_path: Path, expected: str)
         if not isinstance(pkg, str) or not pkg.isidentifier():
             raise ArtifactRefused(f"source subject: package {pkg!r} is not an identifier")
         packages.append(pkg)
+    return packages
+
+
+def _load_source_subject(artifact_dir: Path, manifest_path: Path, expected: str) -> NodeArtifact:
+    digest = sha256_file(manifest_path)
+    if digest != expected:
+        raise ArtifactRefused(
+            f"artifact manifest digest mismatch: bound {expected}, actual {digest}"
+        )
+    manifest = _load_yaml_mapping(manifest_path, "artifact manifest")
+    _check_source_coordinates(manifest)
+    packages = _source_packages(manifest)
     entries = _entries(manifest.get("files"), "artifact manifest files", "sha256")
     if not entries:
         raise ArtifactRefused("artifact manifest: files must be a non-empty list")

@@ -212,7 +212,8 @@ def test_v1_verdicts_come_from_outcome_record(v1: V1) -> None:
     assert o["ob/pass"]["verdict"] == "pass"
     assert {c["case_id"] for c in o["ob/pass"]["cases"]} == {"case.pass", "case:odd/id"}
     assert o["ob/fail"]["verdict"] == "fail"
-    assert o["ob/held"]["verdict"] == "unresolved" and o["ob/held"]["cases"] == []
+    assert o["ob/held"]["verdict"] == "unresolved"
+    assert o["ob/held"]["cases"] == []
     assert receipt["observation_or_outcome"]["overall_verdict"] == "fail"
     assert receipt["evidence_grade"] == "candidate_authority_rehearsal"
     coords = receipt["governing_coordinates"]
@@ -240,21 +241,24 @@ def test_v1_case_absent_from_record_is_error(v1: V1) -> None:
     v1.doc["obligations"][0] = _obligation("ob/pass", ["case.untagged"])
     receipt = run(v1.request())
     case = _verdicts(receipt)["ob/pass"]["cases"][0]
-    assert case["verdict"] == "error" and "absent from outcome record" in case["detail"]
+    assert case["verdict"] == "error"
+    assert "absent from outcome record" in case["detail"]
 
 
 def test_v1_record_junit_disagreement_is_error(v1: V1) -> None:
     v1.write_suite(CONFTEST.replace('_OUT[case] = "fail"', '_OUT[case] = "pass"'))
     receipt = run(v1.request())
     case = _verdicts(receipt)["ob/fail"]["cases"][0]
-    assert case["verdict"] == "error" and "disagrees with junit" in case["detail"]
+    assert case["verdict"] == "error"
+    assert "disagrees with junit" in case["detail"]
 
 
 def test_v1_missing_record_is_error(v1: V1) -> None:
     v1.write_suite(CONFTEST.replace("if path:", "if False:"))
     receipt = run(v1.request())
     case = _verdicts(receipt)["ob/pass"]["cases"][0]
-    assert case["verdict"] == "error" and "no readable outcome record" in case["detail"]
+    assert case["verdict"] == "error"
+    assert "no readable outcome record" in case["detail"]
 
 
 def test_v1_driver_env_exported(v1: V1, tmp_path: Path) -> None:
@@ -276,20 +280,23 @@ def test_v1_driver_env_exported(v1: V1, tmp_path: Path) -> None:
 
 def test_v1_closure_digest_mismatch_refused(v1: V1) -> None:
     v1.doc["subject"]["closure_digest"] = "sha256:" + "e" * 64
+    request = v1.request()
     with pytest.raises(RunnerRefusal, match="closure_digest"):
-        run(v1.request())
+        run(request)
 
 
 def test_v1_binding_must_name_exactly_the_four_files(v1: V1) -> None:
     v1.binding["files"] = [{"path": "conftest.py", "sha256": "sha256:" + "0" * 64}]
+    request = v1.request()
     with pytest.raises(RunnerRefusal, match="must be exactly"):
-        run(v1.request())
+        run(request)
 
 
 def test_v1_identifier_collision_refused(v1: V1) -> None:
     v1.doc["obligations"][0] = _obligation("ob/pass", ["case.pass", "case_pass"])
+    request = v1.request()
     with pytest.raises(RunnerRefusal, match="collide"):
-        run(v1.request())
+        run(request)
 
 
 def _drop_plan_case(d: dict[str, Any]) -> None:
@@ -339,8 +346,9 @@ IR_REFUSALS: list[tuple[Callable[[dict[str, Any]], None], str]] = [
 @pytest.mark.parametrize(("mutate", "match"), IR_REFUSALS)
 def test_v1_ir_refusals(v1: V1, mutate: Callable[[dict[str, Any]], None], match: str) -> None:
     mutate(v1.doc)
+    request = v1.request()
     with pytest.raises(RunnerRefusal, match=match):
-        run(v1.request())
+        run(request)
 
 
 def test_v1_declared_profile_binds_catalog_file_digest(v1: V1) -> None:
@@ -357,24 +365,28 @@ def test_v1_declared_profile_binds_catalog_file_digest(v1: V1) -> None:
 
 
 def test_v1_semantic_digest_mismatch_refused(v1: V1) -> None:
+    request = v1.request(ir_semantic_digest="sha256:" + "0" * 64)
     with pytest.raises(RunnerRefusal, match="semantic digest mismatch"):
-        run(v1.request(ir_semantic_digest="sha256:" + "0" * 64))
+        run(request)
 
 
 def test_v1_fixture_semantic_digest_mismatch_refused(v1: V1) -> None:
     (v1.closure.root / "fixture-ir.yaml").write_text("schema: other\n", encoding="utf-8")
+    request = v1.request()
     with pytest.raises(RunnerRefusal, match="fixture IR digest mismatch"):
-        run(v1.request())
+        run(request)
 
 
 def test_v1_requires_suite_binding(v1: V1) -> None:
+    request = v1.request(suite_binding_path=None)
     with pytest.raises(RunnerRefusal, match="requires a digest-bound suite binding"):
-        run(v1.request(suite_binding_path=None))
+        run(request)
 
 
 def test_v1_suite_binding_digest_mismatch_refused(v1: V1) -> None:
+    request = v1.request(suite_binding_digest="sha256:" + "1" * 64)
     with pytest.raises(RunnerRefusal, match="suite binding digest mismatch"):
-        run(v1.request(suite_binding_digest="sha256:" + "1" * 64))
+        run(request)
 
 
 def test_semantic_sources_bound_by_raw_digest(v1: V1, tmp_path: Path) -> None:
@@ -390,7 +402,9 @@ def test_semantic_sources_bound_by_raw_digest(v1: V1, tmp_path: Path) -> None:
 def test_semantic_source_refusals(v1: V1, tmp_path: Path) -> None:
     schema = tmp_path / "s.yaml"
     schema.write_text("x: 1\n", encoding="utf-8")
+    request = v1.request(semantic_sources=(("ref", tmp_path / "absent.yaml"),))
     with pytest.raises(RunnerRefusal, match="missing or a symlink"):
-        run(v1.request(semantic_sources=(("ref", tmp_path / "absent.yaml"),)))
+        run(request)
+    duplicated = v1.request(semantic_sources=(("ref", schema), ("ref", schema)))
     with pytest.raises(RunnerRefusal, match="unique"):
-        run(v1.request(semantic_sources=(("ref", schema), ("ref", schema))))
+        run(duplicated)

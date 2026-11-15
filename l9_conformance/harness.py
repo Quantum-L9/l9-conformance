@@ -26,9 +26,8 @@ from typing import Final
 
 from l9_conformance.digests import file_set_digest, sha256_file
 
-_DRIVER_REF: Final = re.compile(
-    r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*$"
-)
+# ASCII-only (re.ASCII): \w is exactly [A-Za-z0-9_] here, as before.
+_DRIVER_REF: Final = re.compile(r"^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*:[A-Za-z_]\w*$", re.ASCII)
 
 
 class HarnessRefused(RuntimeError):
@@ -63,7 +62,7 @@ class HarnessBinding:
     data_files: tuple[str, ...] = ()
 
 
-def bind(request: HarnessRequest) -> HarnessBinding:
+def _check_request(request: HarnessRequest) -> PurePosixPath:
     root = PurePosixPath(request.root)
     if not request.root or root.is_absolute() or ".." in root.parts:
         raise HarnessRefused(f"harness root {request.root!r} must be relative and contained")
@@ -74,11 +73,16 @@ def bind(request: HarnessRequest) -> HarnessBinding:
     root_dir = request.root_dir
     if not root_dir.is_dir() or root_dir.is_symlink():
         raise HarnessRefused(f"harness root directory {root_dir} is missing or a symlink")
-    package = root_dir.name
-    if package != root.name:
+    if root_dir.name != root.name:
         raise HarnessRefused(
-            f"harness root directory {package!r} does not match declared root {request.root!r}"
+            f"harness root directory {root_dir.name!r} does not match declared root "
+            f"{request.root!r}"
         )
+    return root
+
+
+def _root_files(root_dir: Path, root: PurePosixPath) -> list[dict[str, str]]:
+    """Every file under the harness root, by raw sha256; symlinks and bytecode refuse."""
     files: list[dict[str, str]] = []
     for path in sorted(root_dir.rglob("*")):
         rel = path.relative_to(root_dir).as_posix()
@@ -92,9 +96,14 @@ def bind(request: HarnessRequest) -> HarnessBinding:
             raise HarnessRefused(f"harness contains bytecode file {rel}")
         files.append({"path": f"{root.as_posix()}/{rel}", "sha256": sha256_file(path)})
     if not files:
-        raise HarnessRefused(f"harness root {request.root!r} holds no files")
-    files.extend(_bind_data_files(request, root))
-    module, _callable = request.driver_ref.split(":", 1)
+        raise HarnessRefused(f"harness root {root.as_posix()!r} holds no files")
+    return files
+
+
+def _check_driver_module(
+    driver_ref: str, package: str, root: PurePosixPath, files: list[dict[str, str]]
+) -> None:
+    module = driver_ref.split(":", 1)[0]
     parts = module.split(".")
     if parts[0] != package:
         raise HarnessRefused(
@@ -106,6 +115,14 @@ def bind(request: HarnessRequest) -> HarnessBinding:
     bound_paths = {f["path"] for f in files}
     if not any(c in bound_paths for c in candidates):
         raise HarnessRefused(f"harness driver module {module!r} has no bound source file")
+
+
+def bind(request: HarnessRequest) -> HarnessBinding:
+    root = _check_request(request)
+    package = request.root_dir.name
+    files = _root_files(request.root_dir, root)
+    files.extend(_bind_data_files(request, root))
+    _check_driver_module(request.driver_ref, package, root, files)
     return HarnessBinding(
         root=root.as_posix(),
         source_revision=request.source_revision,
@@ -166,7 +183,7 @@ def coordinates(binding: HarnessBinding) -> dict[str, object]:
     }
 
 
-def copy_digest(binding: HarnessBinding, product_copy: Path) -> str:
+def copy_digest(product_copy: Path) -> str:
     """Re-hash a laid-out harness product tree (TOCTOU check); every file counts."""
     files = [
         {"path": p.relative_to(product_copy).as_posix(), "sha256": sha256_file(p)}

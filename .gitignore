@@ -1,3 +1,6 @@
 .venv/
 __pycache__/
 *.pyc
+
+# scripts/rehearse.py fixed work directory (plan + receipt)
+/rehearsal/

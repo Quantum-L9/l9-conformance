@@ -88,8 +88,9 @@ def test_harness_refusals(
 ) -> None:
     pkg = _harness(tmp_path)
     mutate(pkg)
+    request = _req(pkg, **kwargs)
     with pytest.raises(HarnessRefused, match=match):
-        bind(_req(pkg, **kwargs))
+        bind(request)
 
 
 def test_run_binds_harness_and_cases_import_it(make_closure: Build, tmp_path: Path) -> None:
@@ -119,8 +120,9 @@ def test_run_refuses_unbindable_harness(make_closure: Build, tmp_path: Path) -> 
     pkg = _harness(tmp_path)
     (pkg / "__pycache__").mkdir()
     closure = make_closure([replay("ob/a", "test_pass")])
+    request = closure.request(harness=_req(pkg))
     with pytest.raises(RunnerRefusal, match="bytecode directory"):
-        run(closure.request(harness=_req(pkg)))
+        run(request)
 
 
 def test_receipt_without_harness_has_no_harness_block(make_closure: Build) -> None:

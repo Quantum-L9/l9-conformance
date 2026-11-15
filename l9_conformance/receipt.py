@@ -108,19 +108,8 @@ def finalize(body: Mapping[str, Any]) -> dict[str, Any]:
     return receipt
 
 
-def verify_receipt(receipt: Mapping[str, Any]) -> None:
-    """Schema-validate and independently re-derive the receipt's verdicts and digest."""
-    errors = schema_errors(receipt)
-    if errors:
-        raise ReceiptInvalid("schema: " + "; ".join(errors))
-    digest = body_digest(receipt)
-    if receipt["receipt_digest"] != digest:
-        raise ReceiptInvalid(
-            f"receipt_digest mismatch: recorded {receipt['receipt_digest']}, computed {digest}"
-        )
-    if receipt["receipt_identity"] != IDENTITY_PREFIX + digest:
-        raise ReceiptInvalid("receipt_identity is not derived from receipt_digest")
-    outcome = cast(Mapping[str, Any], receipt["observation_or_outcome"])
+def _verify_verdicts(outcome: Mapping[str, Any]) -> None:
+    """Re-derive every obligation verdict from its cases, and the overall verdict."""
     obligations = cast(list[Mapping[str, Any]], outcome["obligations"])
     for obligation in obligations:
         cases = cast(list[Mapping[str, Any]], obligation["cases"])
@@ -142,6 +131,21 @@ def verify_receipt(receipt: Mapping[str, Any]) -> None:
         raise ReceiptInvalid(
             f"overall_verdict recorded {outcome['overall_verdict']}, derived {derived_overall}"
         )
+
+
+def verify_receipt(receipt: Mapping[str, Any]) -> None:
+    """Schema-validate and independently re-derive the receipt's verdicts and digest."""
+    errors = schema_errors(receipt)
+    if errors:
+        raise ReceiptInvalid("schema: " + "; ".join(errors))
+    digest = body_digest(receipt)
+    if receipt["receipt_digest"] != digest:
+        raise ReceiptInvalid(
+            f"receipt_digest mismatch: recorded {receipt['receipt_digest']}, computed {digest}"
+        )
+    if receipt["receipt_identity"] != IDENTITY_PREFIX + digest:
+        raise ReceiptInvalid("receipt_identity is not derived from receipt_digest")
+    _verify_verdicts(cast(Mapping[str, Any], receipt["observation_or_outcome"]))
     coordinates = cast(Mapping[str, Any], receipt["governing_coordinates"])
     for block in ("rendered_suite", "harness"):
         if block in coordinates:

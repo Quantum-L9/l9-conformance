@@ -34,6 +34,8 @@ _SUBJECT_CLASSES: Final = frozenset(
 _DISPOSITIONS: Final = frozenset({"executable", "unresolved"})
 _UNRESOLVED_RESULTS: Final = frozenset({"unresolved", "incompatible", "unsat", "ambiguous"})
 _VERDICT_RULE: Final = "pass_only_when_every_witness_case_executes_and_every_assertion_holds"
+_SUBJECT: Final = "ir.subject"
+_BINDING: Final = "suite binding"
 
 
 PYTEST_V2_FILES: Final = frozenset(
@@ -93,7 +95,7 @@ def _digest(mapping: Mapping[str, Any], key: str, where: str) -> str:
 
 def load_suite_binding(data: bytes) -> SuiteBinding:
     try:
-        doc = _m(yaml.safe_load(data), "suite binding")
+        doc = _m(yaml.safe_load(data), _BINDING)
     except yaml.YAMLError as exc:
         raise ir.IRInvalid(f"suite binding: unparseable: {exc}") from exc
     if doc.get("schema") != SUITE_BINDING_SCHEMA:
@@ -115,8 +117,8 @@ def load_suite_binding(data: bytes) -> SuiteBinding:
         )
     return SuiteBinding(
         files=tuple(sorted(files, key=lambda f: f.path)),
-        ir_ref=_s(doc, "ir_ref", "suite binding"),
-        fixture_ir_ref=_s(doc, "fixture_ir_ref", "suite binding"),
+        ir_ref=_s(doc, "ir_ref", _BINDING),
+        fixture_ir_ref=_s(doc, "fixture_ir_ref", _BINDING),
         canonical_admitted=admitted,
     )
 
@@ -128,10 +130,7 @@ def _authority(value: str) -> tuple[str, str]:
     return repo, rev
 
 
-def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceIR:
-    if document.get("schema") != SCHEMA:
-        raise ir.IRInvalid(f"ir.schema must be {SCHEMA}")
-    subject = _m(document.get("subject"), "ir.subject")
+def _authority_coordinates(document: Mapping[str, Any]) -> tuple[str, str]:
     authority = _m(document.get("authority"), "ir.authority")
     if authority.get("compilation_profile_ref") != "l9.compilation/product-build@1":
         raise ir.IRInvalid(
@@ -139,8 +138,10 @@ def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceI
         )
     if authority.get("stage") != "conformance":
         raise ir.IRInvalid("ir.authority.stage is not conformance")
-    repo, revision = _authority(_s(authority, "authority_revision", "ir.authority"))
+    return _authority(_s(authority, "authority_revision", "ir.authority"))
 
+
+def _profile_refs(document: Mapping[str, Any]) -> list[str]:
     profile = _m(document.get("fixture_profile"), "ir.fixture_profile")
     status = profile.get("status")
     refs = [str(r) for r in _l(profile.get("profile_refs"), "ir.fixture_profile.profile_refs")]
@@ -150,88 +151,114 @@ def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceI
         raise ir.IRInvalid("ir.fixture_profile declared without profile_refs")
     if status == "absent" and refs:
         raise ir.IRInvalid("ir.fixture_profile absent but profile_refs present")
+    return refs
 
-    unresolved_reasons: dict[str, str] = {}
+
+def _unresolved_reasons(document: Mapping[str, Any]) -> dict[str, str]:
+    reasons: dict[str, str] = {}
     for i, raw in enumerate(_l(document.get("unresolved", []), "ir.unresolved")):
         u = _m(raw, f"ir.unresolved[{i}]")
         result = u.get("result")
         if result not in _UNRESOLVED_RESULTS:
             raise ir.IRInvalid(f"ir.unresolved[{i}].result {result!r} not in closed set")
         ref = _s(u, "obligation_ref", f"ir.unresolved[{i}]")
-        unresolved_reasons[ref] = f"{result}: {_s(u, 'reason', f'ir.unresolved[{i}]')}"
+        reasons[ref] = f"{result}: {_s(u, 'reason', f'ir.unresolved[{i}]')}"
+    return reasons
 
-    obligations: list[ir.Obligation] = []
-    seen: set[str] = set()
-    for i, raw in enumerate(_l(document.get("obligations"), "ir.obligations")):
-        where = f"ir.obligations[{i}]"
-        o = _m(raw, where)
-        oid = _s(o, "id", where)
-        if oid in seen:
-            raise ir.IRInvalid(f"{where}.id {oid!r} is duplicated")
-        seen.add(oid)
-        if o.get("subject_class") not in _SUBJECT_CLASSES:
-            raise ir.IRInvalid(f"{where}.subject_class not in closed set")
-        if not _l(o.get("governing_refs"), f"{where}.governing_refs"):
-            raise ir.IRInvalid(f"{where}.governing_refs must not be empty")
-        vclass = o.get("verification_class")
-        if vclass not in ir.VERIFICATION_CLASSES:
-            raise ir.IRInvalid(f"{where}.verification_class not in closed set")
-        disposition = o.get("disposition")
-        if disposition not in _DISPOSITIONS:
-            raise ir.IRInvalid(f"{where}.disposition not in closed set")
-        witnesses = [str(w) for w in _l(o.get("witnessed_by"), f"{where}.witnessed_by")]
-        cases: list[ir.Case] = []
-        if disposition == "executable":
-            if vclass != "fixture_replay" or not witnesses:
-                raise ir.IRInvalid(f"{where}: executable requires fixture_replay and witnesses")
-            if oid in unresolved_reasons:
-                raise ir.IRInvalid(f"{where}: executable obligation listed as unresolved")
-            plan = _m(o.get("execution_plan"), f"{where}.execution_plan")
-            if (
-                plan.get("mode") != "fixture_replay"
-                or plan.get("isolation") != "fresh_subject_per_case"
-                or plan.get("verdict_rule") != _VERDICT_RULE
-            ):
-                raise ir.IRInvalid(f"{where}.execution_plan is not the fixture_replay plan")
-            plan_cases = [str(c) for c in _l(plan.get("cases"), f"{where}.execution_plan.cases")]
-            if sorted(plan_cases) != sorted(witnesses):
-                raise ir.IRInvalid(f"{where}.execution_plan.cases differ from witnessed_by")
-            for case_id in plan_cases:
-                nodeid = f"{PYTEST_V2_TEST_MODULE}::{identifier(case_id)}"
-                cases.append(ir.Case(case_id=case_id, nodeid=ir.checked_nodeid(nodeid)))
-        elif oid not in unresolved_reasons:
-            raise ir.IRInvalid(f"{where}: unresolved obligation not listed in ir.unresolved")
-        obligations.append(
-            ir.Obligation(
-                obligation_id=oid,
-                verification_class=cast(ir.VerificationClass, vclass),
-                required=True,
-                cases=tuple(cases),
-                disposition=str(disposition),
-                unresolved_reason=unresolved_reasons.get(oid),
-            )
+
+def _executable_cases(o: Mapping[str, Any], where: str, witnesses: list[str]) -> list[ir.Case]:
+    plan = _m(o.get("execution_plan"), f"{where}.execution_plan")
+    if (
+        plan.get("mode") != "fixture_replay"
+        or plan.get("isolation") != "fresh_subject_per_case"
+        or plan.get("verdict_rule") != _VERDICT_RULE
+    ):
+        raise ir.IRInvalid(f"{where}.execution_plan is not the fixture_replay plan")
+    plan_cases = [str(c) for c in _l(plan.get("cases"), f"{where}.execution_plan.cases")]
+    if sorted(plan_cases) != sorted(witnesses):
+        raise ir.IRInvalid(f"{where}.execution_plan.cases differ from witnessed_by")
+    return [
+        ir.Case(
+            case_id=case_id,
+            nodeid=ir.checked_nodeid(f"{PYTEST_V2_TEST_MODULE}::{identifier(case_id)}"),
         )
-    unknown_refs = set(unresolved_reasons) - seen
-    if unknown_refs:
-        raise ir.IRInvalid(f"ir.unresolved names unknown obligations: {sorted(unknown_refs)}")
-    # A case id maps to one test name; two distinct ids must not collide (the compiler
-    # refuses this too). The same case id may witness more than one obligation.
+        for case_id in plan_cases
+    ]
+
+
+def _obligation(o: Mapping[str, Any], where: str, unresolved: Mapping[str, str]) -> ir.Obligation:
+    oid = _s(o, "id", where)
+    if o.get("subject_class") not in _SUBJECT_CLASSES:
+        raise ir.IRInvalid(f"{where}.subject_class not in closed set")
+    if not _l(o.get("governing_refs"), f"{where}.governing_refs"):
+        raise ir.IRInvalid(f"{where}.governing_refs must not be empty")
+    vclass = o.get("verification_class")
+    if vclass not in ir.VERIFICATION_CLASSES:
+        raise ir.IRInvalid(f"{where}.verification_class not in closed set")
+    disposition = o.get("disposition")
+    if disposition not in _DISPOSITIONS:
+        raise ir.IRInvalid(f"{where}.disposition not in closed set")
+    witnesses = [str(w) for w in _l(o.get("witnessed_by"), f"{where}.witnessed_by")]
+    cases: list[ir.Case] = []
+    if disposition == "executable":
+        if vclass != "fixture_replay" or not witnesses:
+            raise ir.IRInvalid(f"{where}: executable requires fixture_replay and witnesses")
+        if oid in unresolved:
+            raise ir.IRInvalid(f"{where}: executable obligation listed as unresolved")
+        cases = _executable_cases(o, where, witnesses)
+    elif oid not in unresolved:
+        raise ir.IRInvalid(f"{where}: unresolved obligation not listed in ir.unresolved")
+    return ir.Obligation(
+        obligation_id=oid,
+        verification_class=cast(ir.VerificationClass, vclass),
+        required=True,
+        cases=tuple(cases),
+        disposition=str(disposition),
+        unresolved_reason=unresolved.get(oid),
+    )
+
+
+def _check_case_names(obligations: list[ir.Obligation]) -> None:
+    """A case id maps to one test name; two distinct ids must not collide (the compiler
+    refuses this too). The same case id may witness more than one obligation."""
     names: dict[str, str] = {}
     for obligation in obligations:
         for case in obligation.cases:
-            prior = names.setdefault(case.nodeid, case.case_id)
+            prior = names.setdefault(str(case.nodeid), case.case_id)
             if prior != case.case_id:
                 raise ir.IRInvalid(
                     f"case ids {prior!r} and {case.case_id!r} collide as {case.nodeid}"
                 )
 
+
+def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceIR:
+    if document.get("schema") != SCHEMA:
+        raise ir.IRInvalid(f"ir.schema must be {SCHEMA}")
+    subject = _m(document.get("subject"), _SUBJECT)
+    repo, revision = _authority_coordinates(document)
+    refs = _profile_refs(document)
+    unresolved_reasons = _unresolved_reasons(document)
+    obligations: list[ir.Obligation] = []
+    seen: set[str] = set()
+    for i, raw in enumerate(_l(document.get("obligations"), "ir.obligations")):
+        where = f"ir.obligations[{i}]"
+        obligation = _obligation(_m(raw, where), where, unresolved_reasons)
+        if obligation.obligation_id in seen:
+            raise ir.IRInvalid(f"{where}.id {obligation.obligation_id!r} is duplicated")
+        seen.add(obligation.obligation_id)
+        obligations.append(obligation)
+    unknown_refs = set(unresolved_reasons) - seen
+    if unknown_refs:
+        raise ir.IRInvalid(f"ir.unresolved names unknown obligations: {sorted(unknown_refs)}")
+    _check_case_names(obligations)
+
     return ir.ConformanceIR(
         schema=SCHEMA,
         synthetic=False,
         ir_ref=binding.ir_ref,
-        product_ref=_s(subject, "product_ref", "ir.subject"),
+        product_ref=_s(subject, "product_ref", _SUBJECT),
         fixture_ir=ir.RefDigest(
-            ref=binding.fixture_ir_ref, digest=_digest(subject, "fixture_ir_digest", "ir.subject")
+            ref=binding.fixture_ir_ref, digest=_digest(subject, "fixture_ir_digest", _SUBJECT)
         ),
         profiles=tuple(ir.RefDigest(ref=r, digest=PROFILE_DIGEST_FROM_CATALOG) for r in refs),
         canonical_repository=repo,
@@ -245,7 +272,7 @@ def parse(document: Mapping[str, Any], binding: SuiteBinding) -> ir.ConformanceI
         fixture_digest_kind="semantic",
         semantic_digest=sha256_canonical(document),
         outcome_source="outcome_record",
-        closure_digest=_digest(subject, "closure_digest", "ir.subject"),
+        closure_digest=_digest(subject, "closure_digest", _SUBJECT),
     )
 
 

@@ -123,8 +123,9 @@ FALSIFYING: list[tuple[str, Callable[[dict[str, Any]], None], str]] = [
 def test_falsifying_receipts_rejected(
     receipt: dict[str, Any], label: str, mutate: Callable[[dict[str, Any]], None], match: str
 ) -> None:
+    forged = _forge(receipt, mutate)
     with pytest.raises(ReceiptInvalid, match=match):
-        verify_receipt(_forge(receipt, mutate))
+        verify_receipt(forged)
 
 
 def test_empty_obligations_cannot_claim_pass(receipt: dict[str, Any]) -> None:
@@ -132,13 +133,15 @@ def test_empty_obligations_cannot_claim_pass(receipt: dict[str, Any]) -> None:
         _outcome(r)["obligations"] = []
         _outcome(r)["overall_verdict"] = "pass"
 
+    forged = _forge(receipt, mutate)
     with pytest.raises(ReceiptInvalid, match="overall_verdict"):
-        verify_receipt(_forge(receipt, mutate))
+        verify_receipt(forged)
 
 
 def test_rendered_suite_digest_must_match_file_list(receipt: dict[str, Any]) -> None:
     def mutate(r: dict[str, Any]) -> None:
         r["governing_coordinates"]["rendered_suite"]["files"][0]["sha256"] = "sha256:" + "d" * 64
 
+    forged = _forge(receipt, mutate)
     with pytest.raises(ReceiptInvalid, match=r"rendered_suite\.digest"):
-        verify_receipt(_forge(receipt, mutate))
+        verify_receipt(forged)

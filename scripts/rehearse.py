@@ -5,7 +5,9 @@ This script never executes compiler code. The compiler's outputs (conformance IR
 IR, rendered pytest/v2 suite, fresh node output directory) are supplied as DATA paths in
 the plan; the runner verifies each against its bound digests before any case executes.
 
-Plan file (YAML), ``l9-conformance/rehearsal-plan@0``::
+Plan file (YAML), ``l9-conformance/rehearsal-plan@0``, read from the fixed work directory
+``rehearsal/plan.yaml`` at the repository root; the receipt is written to
+``rehearsal/receipt.json`` there. The script takes no path arguments::
 
     schema: l9-conformance/rehearsal-plan@0
     workdir: <directory for pinned checkouts>
@@ -33,7 +35,6 @@ Plan file (YAML), ``l9-conformance/rehearsal-plan@0``::
       source_path: <subject-relative import root, e.g. .../l9-state/src>
       packages: [<importable package>, ...]
     python: <interpreter of the rehearsal venv>
-    out: <receipt output path>
 
 The harness root is never assumed: it is read from
 ``repository_structure.conformance_harness_roots`` in ``declared_in`` and resolved
@@ -63,6 +64,11 @@ from l9_conformance.node_artifact import SOURCE_SUBJECT_SCHEMA
 from l9_conformance.runner import RunnerRefusal, RunRequest, run
 
 PLAN_SCHEMA = "l9-conformance/rehearsal-plan@0"
+# One fixed work directory: the plan is read from it and the receipt written to it. No path
+# is taken from argv, so no CLI-supplied value reaches a file read or write.
+WORK_DIR = Path(__file__).resolve().parents[1] / "rehearsal"
+PLAN_FILE = WORK_DIR / "plan.yaml"
+RECEIPT_FILE = WORK_DIR / "receipt.json"
 
 
 class PlanError(RuntimeError):
@@ -190,50 +196,77 @@ def stage_source_subject(
     return tree, manifest_path, sha256_file(manifest_path)
 
 
-def build_request(plan: Mapping[str, Any]) -> RunRequest:
-    if plan.get("schema") != PLAN_SCHEMA:
-        raise PlanError(f"plan schema must be {PLAN_SCHEMA}")
+def _pinned(plan: Mapping[str, Any]) -> tuple[Mapping[str, Any], Path, Mapping[str, Any], Path]:
     workdir = Path(str(plan["workdir"]))
     repos = _m(plan.get("repos"), "repos")
     authority = _m(repos.get("authority"), "repos.authority")
     subject = _m(repos.get("subject"), "repos.subject")
     auth_dir = fetch_pinned(str(authority["url"]), str(authority["commit"]), workdir / "authority")
     subj_dir = fetch_pinned(str(subject["url"]), str(subject["commit"]), workdir / "subject")
-    auth_slug = str(authority["url"]).rstrip("/").split("github.com/")[-1]
-    sources: list[tuple[str, Path]] = []
-    for rel in cast(list[str], plan.get("semantic_sources") or []):
-        sources.append((f"{auth_slug}@{authority['commit']}:{rel}", auth_dir / rel))
+    return authority, auth_dir, subject, subj_dir
+
+
+def _slug(repo: Mapping[str, Any]) -> str:
+    return str(repo["url"]).rstrip("/").split("github.com/")[-1]
+
+
+def _harness_request(
+    plan: Mapping[str, Any], subject: Mapping[str, Any], subj_dir: Path
+) -> tuple[HarnessRequest, tuple[str, Path]]:
+    """The harness request and the declaring repository-spec, bound as a semantic source."""
     harness_plan = _m(plan.get("harness"), "harness")
-    subj_slug = str(subject["url"]).rstrip("/").split("github.com/")[-1]
     declared_in = str(harness_plan["declared_in"])
     root = declared_harness_root(subj_dir, declared_in, harness_plan.get("root"))
-    sources.append((f"{subj_slug}@{subject['commit']}:{declared_in}", subj_dir / declared_in))
     product_dir = subj_dir / PurePosixPath(declared_in).parent
-    harness = HarnessRequest(
+    request = HarnessRequest(
         root_dir=product_dir / root,
         product_dir=product_dir,
         data_files=tuple(str(f) for f in cast(list[Any], harness_plan.get("data_files") or [])),
         root=root,
-        source_revision=f"{subj_slug}@{subject['commit']}",
+        source_revision=f"{_slug(subject)}@{subject['commit']}",
         driver_ref=str(harness_plan["driver_ref"]),
     )
-    out = _m(plan.get("compiler_outputs"), "compiler_outputs")
+    return request, (f"{_slug(subject)}@{subject['commit']}:{declared_in}", subj_dir / declared_in)
+
+
+def _subject_node(
+    plan: Mapping[str, Any], out: Mapping[str, Any], subject: Mapping[str, Any], subj_dir: Path
+) -> tuple[Path, Path, str]:
+    """(node tree, manifest path, manifest digest): a compiled node or the staged source."""
     subject_source = plan.get("subject_source")
-    if subject_source is not None:
-        if "node_dir" in out or "node_manifest_digest" in out:
-            raise PlanError("give either compiler_outputs.node_dir or subject_source, not both")
-        ss = _m(subject_source, "subject_source")
-        node_dir, manifest_path, manifest_digest = stage_source_subject(
-            subj_dir,
-            f"{subj_slug}@{subject['commit']}",
-            str(ss["source_path"]),
-            [str(p) for p in cast(list[Any], ss.get("packages") or [])],
-            workdir / "subject-node",
-        )
-    else:
+    if subject_source is None:
         node_dir = Path(str(out["node_dir"]))
-        manifest_path = node_dir / "evidence" / "artifact-manifest.yaml"
-        manifest_digest = str(out["node_manifest_digest"])
+        return (
+            node_dir,
+            node_dir / "evidence" / "artifact-manifest.yaml",
+            str(out["node_manifest_digest"]),
+        )
+    if "node_dir" in out or "node_manifest_digest" in out:
+        raise PlanError("give either compiler_outputs.node_dir or subject_source, not both")
+    ss = _m(subject_source, "subject_source")
+    return stage_source_subject(
+        subj_dir,
+        f"{_slug(subject)}@{subject['commit']}",
+        str(ss["source_path"]),
+        [str(p) for p in cast(list[Any], ss.get("packages") or [])],
+        Path(str(plan["workdir"])) / "subject-node",
+    )
+
+
+def build_request(plan: Mapping[str, Any]) -> RunRequest:
+    if plan.get("schema") != PLAN_SCHEMA:
+        raise PlanError(f"plan schema must be {PLAN_SCHEMA}")
+    if "out" in plan:
+        raise PlanError(f"plan.out is not accepted; the receipt is written to {RECEIPT_FILE}")
+    authority, auth_dir, subject, subj_dir = _pinned(plan)
+    sources: list[tuple[str, Path]] = [
+        (f"{_slug(authority)}@{authority['commit']}:{rel}", auth_dir / rel)
+        for rel in cast(list[str], plan.get("semantic_sources") or [])
+    ]
+    harness, declaring = _harness_request(plan, subject, subj_dir)
+    sources.append(declaring)
+    out = _m(plan.get("compiler_outputs"), "compiler_outputs")
+    node_dir, manifest_path, manifest_digest = _subject_node(plan, out, subject, subj_dir)
     return RunRequest(
         ir_path=Path(str(out["ir"])),
         ir_digest=str(out["ir_digest"]),
@@ -242,30 +275,31 @@ def build_request(plan: Mapping[str, Any]) -> RunRequest:
         artifact_dir=node_dir,
         artifact_manifest_path=manifest_path,
         artifact_manifest_digest=manifest_digest,
-        source_revision=f"{subj_slug}@{subject['commit']}",
+        source_revision=f"{_slug(subject)}@{subject['commit']}",
         python_executable=str(plan["python"]),
         harness=harness,
         semantic_sources=tuple(sources),
         suite_binding_path=Path(str(out["suite_binding"])),
         suite_binding_digest=str(out["suite_binding_digest"]),
         ir_semantic_digest=str(out["ir_semantic_digest"]),
-        reproduction="python3 scripts/rehearse.py --plan <plan>",
+        reproduction=f"python3 scripts/rehearse.py  # plan {PLAN_FILE}",
     )
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--plan", type=Path, required=True)
-    args = parser.parse_args(argv)
-    plan = _m(yaml.safe_load(args.plan.read_text(encoding="utf-8")), "plan")
+    parser.parse_args(argv)  # no options: every path comes from the fixed work dir
+    if not PLAN_FILE.is_file() or PLAN_FILE.is_symlink():
+        print(f"REFUSED: no rehearsal plan at {PLAN_FILE}", file=sys.stderr)
+        return 2
+    plan = _m(yaml.safe_load(PLAN_FILE.read_text(encoding="utf-8")), "plan")
     try:
         request = build_request(plan)
         receipt = run(request)
     except (PlanError, RunnerRefusal) as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
-    out = Path(str(plan["out"]))
-    out.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    RECEIPT_FILE.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     verdict = receipt["observation_or_outcome"]["overall_verdict"]
     print(
         f"{receipt['receipt_identity']} overall_verdict={verdict} grade={receipt['evidence_grade']}"

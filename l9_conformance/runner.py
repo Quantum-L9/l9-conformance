@@ -435,7 +435,7 @@ def run_case(
         if harness_bind is not None and run_req.harness is not None:
             harness_product = case_dir / "harness"
             harness_import_root = harness.lay_out(harness_bind, run_req.harness, harness_product)
-            if harness.copy_digest(harness_bind, harness_product) != harness_bind.digest:
+            if harness.copy_digest(harness_product) != harness_bind.digest:
                 return CaseOutcome(
                     case.case_id, "error", "harness bytes changed after binding", None, None
                 )
