@@ -1,0 +1,14 @@
+canonical_admitted: false
+files:
+- path: conftest.py
+  sha256: sha256:de605ed4c1bce8eedc14daa061a21a6f13dab61ad713d91dacc897fbb6c6fb07
+- path: l9_conformance_cases.json
+  sha256: sha256:f063610bc9ee0b9bfc2faa586188d0914d6eb6dc78fd9b159c0d99ce72345674
+- path: l9_conformance_eval.py
+  sha256: sha256:004baaf7e72427fecf351770f59eb34310f83a918a0b573c7a5adebdf82f819f
+- path: test_l9_conformance.py
+  sha256: sha256:ad645da60715cee739865172f86b7486258f6cc241b27bb1431057df3d1639e1
+fixture_ir_ref: Quantum-L9/l9-semantic-compiler-engine@9040ff9e70033ffeb56fbb44dea678253f62ecb0:tools/rehearse_product.py(tests/specimens/l9-state-711da68)/fixture_ir
+ir_ref: Quantum-L9/l9-semantic-compiler-engine@9040ff9e70033ffeb56fbb44dea678253f62ecb0:tools/rehearse_product.py(tests/specimens/l9-state-711da68)/conformance_ir.json
+layout: pytest/v2
+schema: l9-conformance/suite-binding@1

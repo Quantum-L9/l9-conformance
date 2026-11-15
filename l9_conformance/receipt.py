@@ -21,9 +21,10 @@ from functools import cache
 from pathlib import Path
 from typing import Any, Final, Literal, cast
 
+import yaml
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
-from l9_conformance.digests import sha256_canonical
+from l9_conformance.digests import file_set_digest, sha256_bytes, sha256_canonical
 
 SCHEMA_ID: Final = "l9-conformance/conformance-receipt@1"
 RECEIPT_TYPE: Final = "l9.receipt/conformance@1"
@@ -107,19 +108,59 @@ def finalize(body: Mapping[str, Any]) -> dict[str, Any]:
     return receipt
 
 
-def verify_receipt(receipt: Mapping[str, Any]) -> None:
-    """Schema-validate and independently re-derive the receipt's verdicts and digest."""
-    errors = schema_errors(receipt)
-    if errors:
-        raise ReceiptInvalid("schema: " + "; ".join(errors))
-    digest = body_digest(receipt)
-    if receipt["receipt_digest"] != digest:
-        raise ReceiptInvalid(
-            f"receipt_digest mismatch: recorded {receipt['receipt_digest']}, computed {digest}"
-        )
-    if receipt["receipt_identity"] != IDENTITY_PREFIX + digest:
-        raise ReceiptInvalid("receipt_identity is not derived from receipt_digest")
-    outcome = cast(Mapping[str, Any], receipt["observation_or_outcome"])
+# Birth-gate verdict policy (CTO ruling, campaign L9-NODE-PIPELINE-01): a run is
+# birth-passable iff no obligation is fail or error, and every unresolved obligation is
+# governed only by laws whose declared verification class (the product's fixture IR
+# law_index) is one fixture replay can never prove. Those stay unresolved in the receipt
+# and are listed as open evidence obligations. This classifies evidence; it is not
+# admission and grants no authority.
+OPEN_EVIDENCE_CLASSES: Final = frozenset({"static_inspection", "external_runtime_evidence"})
+BIRTH_GATE_RULE: Final = (
+    "birth_passable iff no obligation is fail or error and every unresolved obligation is "
+    "governed only by laws whose law_index verification_class is static_inspection or "
+    "external_runtime_evidence; those remain unresolved and are open evidence obligations"
+)
+
+
+def birth_gate(obligations: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
+    """Derive the birth gate from the recorded obligations alone (re-derivable on verify)."""
+    reasons: list[str] = []
+    open_obligations: list[dict[str, Any]] = []
+    seen = False
+    for obligation in obligations:
+        seen = True
+        oid, verdict = obligation["obligation_id"], obligation["verdict"]
+        if verdict in ("fail", "error"):
+            reasons.append(f"{oid}: verdict {verdict}")
+            continue
+        if verdict != "unresolved":
+            continue
+        laws = cast(list[Mapping[str, Any]], obligation.get("governing_laws") or [])
+        classes = [law["verification_class"] for law in laws]
+        if not laws or any(c is None for c in classes):
+            reasons.append(f"{oid}: unresolved and not mapped to a law of the law index")
+        elif any(c not in OPEN_EVIDENCE_CLASSES for c in classes):
+            reasons.append(f"{oid}: unresolved under a {'/'.join(sorted(set(classes)))} law")
+        else:
+            open_obligations.append(
+                {
+                    "obligation_id": oid,
+                    "law_refs": [law["law_ref"] for law in laws],
+                    "verification_classes": sorted(set(classes)),
+                }
+            )
+    if not seen:
+        reasons.append("no obligation was evaluated")
+    return {
+        "birth_passable": not reasons,
+        "reasons": reasons,
+        "open_evidence_obligations": open_obligations,
+        "rule": BIRTH_GATE_RULE,
+    }
+
+
+def _verify_verdicts(outcome: Mapping[str, Any]) -> None:
+    """Re-derive every obligation verdict from its cases, and the overall verdict."""
     obligations = cast(list[Mapping[str, Any]], outcome["obligations"])
     for obligation in obligations:
         cases = cast(list[Mapping[str, Any]], obligation["cases"])
@@ -141,7 +182,53 @@ def verify_receipt(receipt: Mapping[str, Any]) -> None:
         raise ReceiptInvalid(
             f"overall_verdict recorded {outcome['overall_verdict']}, derived {derived_overall}"
         )
+    if "birth_gate" in outcome and outcome["birth_gate"] != birth_gate(obligations):
+        raise ReceiptInvalid("birth_gate is not derived from the recorded obligations")
+
+
+def verify_receipt(receipt: Mapping[str, Any]) -> None:
+    """Schema-validate and independently re-derive the receipt's verdicts and digest."""
+    errors = schema_errors(receipt)
+    if errors:
+        raise ReceiptInvalid("schema: " + "; ".join(errors))
+    digest = body_digest(receipt)
+    if receipt["receipt_digest"] != digest:
+        raise ReceiptInvalid(
+            f"receipt_digest mismatch: recorded {receipt['receipt_digest']}, computed {digest}"
+        )
+    if receipt["receipt_identity"] != IDENTITY_PREFIX + digest:
+        raise ReceiptInvalid("receipt_identity is not derived from receipt_digest")
+    _verify_verdicts(cast(Mapping[str, Any], receipt["observation_or_outcome"]))
     coordinates = cast(Mapping[str, Any], receipt["governing_coordinates"])
+    for block in ("rendered_suite", "harness"):
+        if block in coordinates:
+            bound = cast(Mapping[str, Any], coordinates[block])
+            files = cast(list[dict[str, str]], bound["files"])
+            if file_set_digest(files) != bound["digest"]:
+                raise ReceiptInvalid(f"{block}.digest is not the digest of its file list")
     authority = cast(Mapping[str, Any], coordinates["canonical_authority"])
     if receipt["evidence_grade"] == "canonical" and not authority["admitted"]:
         raise ReceiptInvalid("canonical evidence_grade requires admitted canonical authority")
+
+
+def verify_receipt_inputs(
+    receipt: Mapping[str, Any], *, ir_bytes: bytes, fixture_ir_bytes: bytes
+) -> None:
+    """Verify a receipt, then recompute its IR bindings from the actual input bytes.
+
+    Raw digests are recomputed from the bytes; a recorded ``semantic_digest`` is
+    recomputed from the parsed document (canonical JSON). Any mismatch is ReceiptInvalid.
+    """
+    verify_receipt(receipt)
+    coordinates = cast(Mapping[str, Any], receipt["governing_coordinates"])
+    for key, data in (("conformance_ir", ir_bytes), ("fixture_ir", fixture_ir_bytes)):
+        bound = cast(Mapping[str, Any], coordinates[key])
+        if sha256_bytes(data) != bound["digest"]:
+            raise ReceiptInvalid(f"{key}.digest does not match the supplied bytes")
+        if "semantic_digest" in bound:
+            try:
+                document = yaml.safe_load(data)
+            except yaml.YAMLError as exc:
+                raise ReceiptInvalid(f"{key} bytes are unparseable: {exc}") from exc
+            if sha256_canonical(document) != bound["semantic_digest"]:
+                raise ReceiptInvalid(f"{key}.semantic_digest does not match the supplied bytes")

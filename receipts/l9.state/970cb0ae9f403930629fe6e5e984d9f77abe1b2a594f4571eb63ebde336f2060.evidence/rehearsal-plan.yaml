@@ -1,0 +1,30 @@
+schema: l9-conformance/rehearsal-plan@0
+workdir: <scratch>/rehearsal-work/pins
+repos:
+  authority: {url: https://github.com/Quantum-L9/.github, commit: 44e02a090ea0e27f91c8fe3c245e2033ad80699f}
+  subject: {url: https://github.com/Quantum-L9/l9-wip, commit: 711da6842378eea88d5dace26ffa48bedd632a7b}
+semantic_sources:
+  - semantics/conformance_ir.schema.yaml
+  - semantics/fixture_ir.schema.yaml
+  - semantics/harness_surface.schema.yaml
+  - semantics/conformance_model.yaml
+harness:
+  declared_in: l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/repository-spec.yaml
+  driver_ref: l9_state_conformance_harness.driver:create_driver
+  data_files:
+    - product-topology.yaml
+    - contracts/STATE_HARNESS_SURFACE.yaml
+    - contracts/STATE_HARNESS_CONTRACTS.yaml
+subject_source:
+  source_path: l9-state/l9-state-FULL-WORK-PACK-HANDOFF-READY/l9-state/src
+  packages: [l9_state]
+compiler_outputs:
+  ir: <scratch>/rehearsal-work/compiler-out/conformance_ir.json
+  ir_digest: sha256:f767c515ea3451835c576039f763921a4aa108591931ffe87a841e28f823792b
+  ir_semantic_digest: sha256:2be9d557f0a865ab59a45d35fe18d29ca9af7b975caef08601d91faf9a1cb479
+  fixture_ir: <scratch>/rehearsal-work/compiler-out/fixture_ir.json
+  suite_dir: <scratch>/rehearsal-work/compiler-out/suite
+  suite_binding: <scratch>/rehearsal-work/compiler-out/suite-binding.yaml
+  suite_binding_digest: sha256:7c929958315c40ee8df1d8e96c3ab2e7c465579d5bb4280ac9768e91a9555a85
+python: <scratch>/rehearsal-env/venv/bin/python
+out: <scratch>/rehearsal-work/receipt.json

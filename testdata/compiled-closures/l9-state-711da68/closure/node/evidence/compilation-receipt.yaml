@@ -1,0 +1,36 @@
+claim: declared semantic compilation executed against exact inputs and profile
+diagnostics: []
+exact_subject_ref: l9.state
+governing_coordinates:
+  authority_revision: Quantum-L9/.github@dcd9d0092740756c19ac681d399bd438409bdc52
+  authority_status: candidate_not_admitted
+  stage: target_artifacts
+  target_binding: l9.binding/python-gate-node@1
+inputs:
+- digest: sha256:0fce9d0d4972b92316ca745ed1ab4bd4182add880c4b982a22ca8ff2987be0e6
+  ref: l9.implementation-ir/v1
+- digest: sha256:4c079459086ae6e7e85a200c0629072137946d5a3b5e9b50c4fad532882aa831
+  ref: l9.receipt/compilation@1
+- digest: sha256:c0d8c06da3409bf056e3219e78c073ab0d933407eec1c28901d31b6c2835b839
+  ref: l9.binding-catalog/global@1
+operation: target_artifacts
+output:
+  digest: sha256:1c819e1f921c32ec487400b897aaac33f94e1c0633eadc0c1096c903ad8e4a8f
+  ref: l9.semantic-compiler.node-artifact-manifest/v1
+producer_identity:
+  compiler: l9-semantic-compiler
+  version: 0.16.0
+profile:
+  digest: sha256:85f2af3ce9082a06641629354dd9008ac864f70bc81b869dc480b1068f66cf51
+  ref: l9.compilation/product-build@1
+receipt_digest: sha256:f9dae8f53b71604f7c50d42313f95b135cd935485d899eaca0d226ca2a20b3a4
+receipt_identity: l9.receipt-instance/7b99044de8dfc9487e87a7ddace3c4bc093f9bbe4a4ed2e61688795566f4b2d4
+receipt_type: l9.receipt/compilation@1
+result: pass
+schema: l9.compiler-receipt/v1
+verification_basis:
+  bound_sources_verified: 1
+  conformance: not_compiled
+  implementation_ir_rules: pass
+  included_bound_sources: 18
+  python_compiled: 2

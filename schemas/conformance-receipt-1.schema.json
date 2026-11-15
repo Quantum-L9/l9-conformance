@@ -58,6 +58,7 @@
             "manifest_schema": {
               "enum": [
                 "l9.semantic-compiler.node-artifact-manifest/v1",
+                "l9-conformance/source-subject-manifest@0",
                 "l9-conformance/synthetic-node-manifest@0"
               ]
             },
@@ -165,10 +166,10 @@
           }
         },
         "conformance_ir": {
-          "$ref": "#/$defs/refDigest"
+          "$ref": "#/$defs/irRef"
         },
         "fixture_ir": {
-          "$ref": "#/$defs/refDigest"
+          "$ref": "#/$defs/irRef"
         },
         "rendered_suite": {
           "type": "object",
@@ -190,6 +191,87 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/refDigest"
+          }
+        },
+        "harness": {
+          "description": "Conformance-harness code executed by the run (coordinator ruling D5). Every file under the declared harness root is bound by raw sha256; the harness never ships in the node artifact.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_revision",
+            "source_revision_basis",
+            "root",
+            "driver_ref",
+            "digest",
+            "files"
+          ],
+          "properties": {
+            "source_revision": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "source_revision_basis": {
+              "const": "caller_supplied"
+            },
+            "root": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).+$"
+            },
+            "driver_ref": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*$"
+            },
+            "digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "files": {
+              "$ref": "#/$defs/fileDigests"
+            }
+          }
+        },
+        "conformance_closure": {
+          "description": "Present when the run consumed a compiler closure (l9.conformance-closure/v1). Binds the raw bytes of closure.json; the closure's authority_status is recorded, never upgraded.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "digest",
+            "suite_binding",
+            "authority_status",
+            "product_manifest_closure_digest",
+            "compiler"
+          ],
+          "properties": {
+            "schema": {
+              "const": "l9.conformance-closure/v1"
+            },
+            "digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "suite_binding": {
+              "const": "pytest/v2"
+            },
+            "authority_status": {
+              "$ref": "#/$defs/nonEmpty"
+            },
+            "product_manifest_closure_digest": {
+              "$ref": "#/$defs/digest"
+            },
+            "compiler": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "version"
+              ],
+              "properties": {
+                "name": {
+                  "$ref": "#/$defs/nonEmpty"
+                },
+                "version": {
+                  "$ref": "#/$defs/nonEmpty"
+                }
+              }
+            }
           }
         }
       }
@@ -259,12 +341,102 @@
                     }
                   }
                 }
+              },
+              "governing_laws": {
+                "description": "The obligation's governing law refs and each law's verification_class as declared in the product's fixture IR law_index; null when the law is not in the index (unmapped).",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "law_ref",
+                    "verification_class"
+                  ],
+                  "properties": {
+                    "law_ref": {
+                      "$ref": "#/$defs/nonEmpty"
+                    },
+                    "verification_class": {
+                      "oneOf": [
+                        {
+                          "enum": [
+                            "fixture_replay",
+                            "static_inspection",
+                            "external_runtime_evidence"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                }
               }
             }
           }
         },
         "overall_verdict": {
           "$ref": "#/$defs/verdict"
+        },
+        "birth_gate": {
+          "description": "Birth-gate classification derived from the obligations alone (CTO ruling, L9-NODE-PIPELINE-01) and re-derived on verification. Evidence classification only: not admission, grants no authority, and never rewrites an unresolved verdict.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "birth_passable",
+            "reasons",
+            "open_evidence_obligations",
+            "rule"
+          ],
+          "properties": {
+            "birth_passable": {
+              "type": "boolean"
+            },
+            "reasons": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "open_evidence_obligations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "obligation_id",
+                  "law_refs",
+                  "verification_classes"
+                ],
+                "properties": {
+                  "obligation_id": {
+                    "$ref": "#/$defs/nonEmpty"
+                  },
+                  "law_refs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "$ref": "#/$defs/nonEmpty"
+                    }
+                  },
+                  "verification_classes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "enum": [
+                        "static_inspection",
+                        "external_runtime_evidence"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "rule": {
+              "const": "birth_passable iff no obligation is fail or error and every unresolved obligation is governed only by laws whose law_index verification_class is static_inspection or external_runtime_evidence; those remain unresolved and are open evidence obligations"
+            }
+          }
         }
       }
     },
@@ -454,6 +626,26 @@
           "sha256": {
             "$ref": "#/$defs/digest"
           }
+        }
+      }
+    },
+    "irRef": {
+      "description": "An IR bound by raw file-byte digest and, when its format defines one, by its semantic digest (canonical JSON of the parsed document; ruling D8).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "digest"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/nonEmpty"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "semantic_digest": {
+          "$ref": "#/$defs/digest"
         }
       }
     }

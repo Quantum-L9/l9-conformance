@@ -1,0 +1,71 @@
+{
+ "artifact_dir": "node",
+ "artifact_manifest": "node/evidence/artifact-manifest.yaml",
+ "artifact_manifest_digest": "sha256:1c819e1f921c32ec487400b897aaac33f94e1c0633eadc0c1096c903ad8e4a8f",
+ "authority_revision": "Quantum-L9/.github@31b4f4f699becb1437b4804c308650bbad60c00e",
+ "authority_status": "candidate_not_admitted",
+ "compiler": {
+  "name": "l9-semantic-compiler",
+  "version": "0.16.0"
+ },
+ "driver_factory": {
+  "digest": "sha256:efa18eeb555631c0b5dc3fe793dd01c8eb5ef1ae1200ed4bac69329c7bb4662c",
+  "driver": "l9_state_conformance_harness.driver:create_driver",
+  "harness_root": "src/l9_state_conformance_harness",
+  "import_root": "src",
+  "module_path": "src/l9_state_conformance_harness/driver.py"
+ },
+ "fixture_ir": "fixture-ir.json",
+ "fixture_ir_digest": "sha256:f627abb24bcea28a752dd72f1376e9087322f8a13b3bd9beb1099a59a61a21e7",
+ "ir": "conformance-ir.json",
+ "ir_digest": "sha256:6bf27d31088240c7e784a016a87bd5e1c767d26d6233630e91972e1c42d872a5",
+ "product_manifest_closure_digest": "sha256:7e0322e284428775ae832205e2ed271792028ae563d065ea863a78360a69f3b1",
+ "product_ref": "l9.state",
+ "profile_refs": [],
+ "schema": "l9.conformance-closure/v1",
+ "schema_binding": {
+  "authority_status": "candidate_not_admitted",
+  "binding_ref": "l9.binding/conformance-closure@1",
+  "schemas": {
+   "conformance_ir": {
+    "digest": "sha256:d944cd322867327198671abc6ff302d132929d2f9fde56f21fe49816b207a8d6",
+    "ref": "l9.conformance-ir/v1"
+   },
+   "fixture_ir": {
+    "digest": "sha256:8d9443ba1222171c06464af7279081e19f79be5e0ce2e172e22c08e18dff4a14",
+    "ref": "l9.fixture-ir/v1"
+   },
+   "harness_surface": {
+    "digest": "sha256:e7182acefd2d28b25bf057b70a3c034c3be5bff22c86bc0ca919d5737a0efe7b",
+    "ref": "l9.harness-surface/v1"
+   }
+  },
+  "source": {
+   "release": "v3.40.0",
+   "release_status": "ADDITIVE SUCCESSOR CANDIDATE",
+   "repository": "Quantum-L9/.github",
+   "revision": "41df652bdbe6071feed06e8c21fdf1f4230bf38e"
+  }
+ },
+ "source_revision": "711da68",
+ "suite_binding": "pytest/v2",
+ "suite_dir": "suite",
+ "suite_files": [
+  {
+   "path": "conftest.py",
+   "sha256": "sha256:de605ed4c1bce8eedc14daa061a21a6f13dab61ad713d91dacc897fbb6c6fb07"
+  },
+  {
+   "path": "l9_conformance_cases.json",
+   "sha256": "sha256:7f4d2c0502250d3e9dc0d79dc7108a54e93a6eac57d45982560df31b6b11bc8a"
+  },
+  {
+   "path": "l9_conformance_eval.py",
+   "sha256": "sha256:004baaf7e72427fecf351770f59eb34310f83a918a0b573c7a5adebdf82f819f"
+  },
+  {
+   "path": "test_l9_conformance.py",
+   "sha256": "sha256:ad645da60715cee739865172f86b7486258f6cc241b27bb1431057df3d1639e1"
+  }
+ ]
+}

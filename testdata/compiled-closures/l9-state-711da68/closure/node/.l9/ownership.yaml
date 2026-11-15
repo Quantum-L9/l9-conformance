@@ -1,0 +1,46 @@
+compiler_derived:
+- .l9/architecture.yaml
+- .l9/ci.json
+- .l9/gate-registration.json
+- .l9/ownership.yaml
+- .l9/repo-contracts.json
+- AGENTS.md
+- ARCHITECTURE.md
+- README.md
+- Repo.mk
+- llm.txt
+core_runtime_owns:
+- .l9/repo-workflow.json
+- Makefile
+- requirements-ci.txt
+product_does_not_own:
+- global_l9_semantics
+- ProductTopology_semantics
+- ProductKind_semantics
+- global_identity_semantics
+- Gate_transport_or_routing
+- storage_provider_semantics
+- product_admission_authority
+- repository_birth_machinery
+- repository_merge_authority
+- deployment_authority
+product_owns:
+- state_implementation_source
+- state_contract_schemas
+- state_reason_code_catalog
+- state_invariant_catalog
+- state_validation_tests
+- state_semantic_fixtures
+- state_operation_semantics
+- state_conformance_fixture_cases
+product_ref: l9.state
+provenance:
+  authority_status: candidate_not_admitted
+  binding: l9.binding/node-birth-package@1
+  generated_by: l9-semantic-compiler
+repository: Quantum-L9/l9-state
+schema: l9.ownership-spec/v1
+semantic_owner: l9-state
+upstream_owns:
+  global_semantics: Quantum-L9/.github
+  product_meaning: l9-state

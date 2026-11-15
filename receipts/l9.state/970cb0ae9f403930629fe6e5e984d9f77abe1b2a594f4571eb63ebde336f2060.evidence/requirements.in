@@ -1,0 +1,6 @@
+constellation-node-sdk @ git+https://github.com/Quantum-L9/Gate_SDK.git@bc1c74c06d70126e82eba73c47df8f2f2af4bc2b
+pytest==9.1.1
+fastapi>=0.115.0
+pydantic>=2.9.0
+pyyaml>=6.0.2
+rfc8785==0.1.4

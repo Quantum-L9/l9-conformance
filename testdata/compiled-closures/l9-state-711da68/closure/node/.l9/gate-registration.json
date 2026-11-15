@@ -1,0 +1,49 @@
+{
+  "authority_status": "candidate_not_admitted",
+  "binding": "l9.binding/node-birth-package@1",
+  "forbidden_actions": [
+    "state.hard_erase",
+    "state.hard_delete"
+  ],
+  "health_endpoint": "/v1/health",
+  "idempotency_required_actions": [
+    "state.create",
+    "state.transition",
+    "state.tombstone",
+    "state.restore",
+    "state.claim",
+    "state.renew",
+    "state.release",
+    "state.ack"
+  ],
+  "owner": "l9-state",
+  "product_ref": "l9.state",
+  "schema": "l9.gate-registration-manifest/v1",
+  "supported_actions": [
+    "state.create",
+    "state.get",
+    "state.transition",
+    "state.tombstone",
+    "state.restore",
+    "state.claim",
+    "state.renew",
+    "state.release",
+    "state.list",
+    "state.events",
+    "state.ack",
+    "state.history",
+    "state.operation.inspect"
+  ],
+  "unknowns": [
+    {
+      "blocks": "registration node identity",
+      "field": "node_id",
+      "reason": "identity.dimensions.constellation is established by Gate runtime admission, not authored as a static product fact"
+    },
+    {
+      "blocks": "registration routing address",
+      "field": "internal_url",
+      "reason": "per-environment deployment input, not product-determined"
+    }
+  ]
+}

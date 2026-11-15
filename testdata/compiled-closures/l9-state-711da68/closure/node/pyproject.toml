@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=75.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "l9-state-node"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["constellation-node-sdk @ git+https://github.com/Quantum-L9/Gate_SDK.git@v1", "fastapi>=0.115.0", "pydantic>=2.9.0", "pyyaml>=6.0.2", "rfc8785==0.1.4"]
+
+[project.optional-dependencies]
+server = ["pymongo==4.18.2"]
+
+[tool.setuptools]
+packages = ["l9_state", "l9_state.adapters", "l9_state.bindings", "l9_state_node"]
+
+[tool.setuptools.package-dir]
+"" = "src"
