@@ -97,6 +97,10 @@ def test_every_state_law_is_carried_by_exactly_one_profile_or_unresolved_everywh
     assert not (unassigned[0] & set(carried))
     # Every class carries at least one law witness.
     assert set(carried.values()) == set(AS_CLASSES)
+    # CTO ruling (INDEX authoritative_state_classification.ruling): every one of State's 31 laws
+    # is assigned, so no profile carries a pending law_class_assignment Unknown.
+    assert unassigned[0] == frozenset()
+    assert len(carried) == 31
 
 
 def test_tampered_profile_bytes_fail(copy_root: Path) -> None:

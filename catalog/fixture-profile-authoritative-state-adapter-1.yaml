@@ -38,22 +38,12 @@ obligations:
   statement: Gate timeout is the sole request-budget authority; State may shrink but never extend it.
   state_law_class: deadline
   verification_class: fixture_replay
+- id: O-AS-ADAPTER-STATE-PROVIDER-001
+  law_ref: STATE-PROVIDER-001
+  statement: Public/domain contracts contain no storage-provider syntax or identifiers.
+  state_law_class: provider
+  verification_class: static_inspection
 unresolved:
-- id: U-AS-ADAPTER-4
-  kind: law_class_assignment
-  statement: 'These State laws are not assigned to any class: their own text does not decide one class
-    under the catalog rule. Pending CTO ruling; no profile carries them.'
-  unassigned_laws:
-  - STATE-AMBIGUITY-001
-  - STATE-ATOMIC-001
-  - STATE-BIRTH-001
-  - STATE-ERASE-001
-  - STATE-JOURNAL-001
-  - STATE-PROVIDER-001
-  - STATE-RECOVERY-001
-  - STATE-RETENTION-002
-  - STATE-SCHEMA-001
-  - STATE-TENANT-001
 - id: U-AS-ADAPTER-2
   kind: class_assignment
   statement: The archetype requirements below are not assigned to any conformance class by governing semantics;

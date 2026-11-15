@@ -16,7 +16,7 @@ profiles:
     lifecycle_stage: candidate
     conformance_class: core
     path: catalog/fixture-profile-authoritative-state-core-1.yaml
-    digest: sha256:2d826d2711ec6f5150230d528aed060ace39dd737354b53926ad1a9ef46ce324
+    digest: sha256:123cb658a964dab8a102d7354fd8d45ed433b1b1889db17440249da90cdc99cc
     membership:
       - id: l9.fixture/authoritative-state-requires-core@1
         path: catalog/fixtures/authoritative-state-requires-core.yaml
@@ -26,7 +26,7 @@ profiles:
     lifecycle_stage: candidate
     conformance_class: capability
     path: catalog/fixture-profile-authoritative-state-capability-1.yaml
-    digest: sha256:3fce05a4b179e43af2be5bcbcee44b42b186e41ee4fd2fa213465ad9298e94f8
+    digest: sha256:7f43d1dbedd981dfaa078b058e6d5a750c02b35033c62d8520380ebe2febbed9
     membership:
       - id: l9.fixture/authoritative-state-requires-capability@1
         path: catalog/fixtures/authoritative-state-requires-capability.yaml
@@ -36,7 +36,7 @@ profiles:
     lifecycle_stage: candidate
     conformance_class: runtime
     path: catalog/fixture-profile-authoritative-state-runtime-1.yaml
-    digest: sha256:685197c4ff28d481037366017c7a2c115d8d9bb1fc1cc5ad798d7e87b95e064f
+    digest: sha256:657cf994749970ea8a2b76e36429576ee5b94c01373c7f37a923da589fd70ce9
     membership:
       - id: l9.fixture/authoritative-state-requires-runtime@1
         path: catalog/fixtures/authoritative-state-requires-runtime.yaml
@@ -46,7 +46,7 @@ profiles:
     lifecycle_stage: candidate
     conformance_class: adapter
     path: catalog/fixture-profile-authoritative-state-adapter-1.yaml
-    digest: sha256:bedd2a0f27e6ebe0825a74338d6d59602124d76150a760289a7a7c402a65b930
+    digest: sha256:98d37fe95079b6c7001da3ac51ef5b137fd213d07878d5c24af1eb7aff761785
     membership:
       - id: l9.fixture/authoritative-state-requires-adapter@1
         path: catalog/fixtures/authoritative-state-requires-adapter.yaml
@@ -59,13 +59,21 @@ authoritative_state_classification:
     node class; CONFORMANCE owns their content".
   rule: >-
     Each State law (law_index of the product's fixture IR) is assigned to exactly one conformance
-    class by the subject its own statement constrains. core: the revisioned state model itself
-    (revision, object identity, idempotency, lifecycle) independent of any action, transport or
-    provider. capability: observable semantics of the declared state.* actions (receipts, outcomes,
-    problems, retry guidance, claims, fences, restore, cursors, event order). runtime: persistence,
-    provider, retry/budget execution, TTL and restart behaviour. adapter: the Gate SDK adapter
-    binding (Gate mediation, Gate-owned budget). A law whose statement does not decide one class
-    is recorded as unresolved in every profile and carried by none.
+    class by the subject its own statement constrains. core: the state model's identity, revision,
+    lifecycle, idempotency and outcome semantics, tenant identity and schema binding, and the
+    node's ownership boundary. capability: observable semantics of the declared state.* actions
+    (receipts, problems, retry guidance, claims, fences, restore, erase, cursors, event order).
+    runtime: persistence, transactions, the journal, restart and recovery, retention execution,
+    TTL and budgets. adapter: every declared adapter boundary binding of the node, namely the
+    Gate SDK inbound adapter (product topology adapters.inbound) and the storage-provider outbound
+    adapter (the store provider binding). A law whose statement does not decide one class is
+    recorded as unresolved in every profile and carried by none.
+  ruling: >-
+    CTO ruling for campaign L9-NODE-PIPELINE-01, lane O (2026-11-15). It settled the meaning of
+    adapter (both boundaries above) and assigned the ten laws whose own text did not decide a
+    class under the first draft of this rule: core AMBIGUITY-001, BIRTH-001, SCHEMA-001,
+    TENANT-001; capability ERASE-001; runtime ATOMIC-001, JOURNAL-001, RECOVERY-001,
+    RETENTION-002; adapter PROVIDER-001. No assigned law's own statement contradicts its class.
   witness: obligations[].law_ref in each authoritative-state profile
 does_not_own:
   - global_constitutional_law

@@ -75,22 +75,13 @@ obligations:
   statement: Journal order is total within scope only.
   state_law_class: ordering
   verification_class: fixture_replay
+- id: O-AS-CAPABILITY-STATE-ERASE-001
+  law_ref: STATE-ERASE-001
+  statement: Hard erase scrubs retained payload bytes while preserving object identity, revision continuity,
+    fence lineage, journal metadata, and operation replay safety.
+  state_law_class: retention
+  verification_class: fixture_replay
 unresolved:
-- id: U-AS-CAPABILITY-4
-  kind: law_class_assignment
-  statement: 'These State laws are not assigned to any class: their own text does not decide one class
-    under the catalog rule. Pending CTO ruling; no profile carries them.'
-  unassigned_laws:
-  - STATE-AMBIGUITY-001
-  - STATE-ATOMIC-001
-  - STATE-BIRTH-001
-  - STATE-ERASE-001
-  - STATE-JOURNAL-001
-  - STATE-PROVIDER-001
-  - STATE-RECOVERY-001
-  - STATE-RETENTION-002
-  - STATE-SCHEMA-001
-  - STATE-TENANT-001
 - id: U-AS-CAPABILITY-2
   kind: class_assignment
   statement: The archetype requirements below are not assigned to any conformance class by governing semantics;

@@ -50,22 +50,28 @@ obligations:
     journal polling.
   state_law_class: leverage
   verification_class: fixture_replay
+- id: O-AS-RUNTIME-STATE-ATOMIC-001
+  law_ref: STATE-ATOMIC-001
+  statement: State mutation commits projection, immutable revision, event, and receipt atomically.
+  state_law_class: atomicity
+  verification_class: fixture_replay
+- id: O-AS-RUNTIME-STATE-JOURNAL-001
+  law_ref: STATE-JOURNAL-001
+  statement: The canonical journal is the sole authoritative mutation-event/outbox source.
+  state_law_class: events
+  verification_class: fixture_replay
+- id: O-AS-RUNTIME-STATE-RECOVERY-001
+  law_ref: STATE-RECOVERY-001
+  statement: Ambiguous mutation completion is reconciled by operation receipt before retry.
+  state_law_class: recovery
+  verification_class: fixture_replay
+- id: O-AS-RUNTIME-STATE-RETENTION-002
+  law_ref: STATE-RETENTION-002
+  statement: State executes hard-erasure mechanics only from externally authorized retention decisions
+    and never invents retention policy.
+  state_law_class: authority
+  verification_class: fixture_replay
 unresolved:
-- id: U-AS-RUNTIME-4
-  kind: law_class_assignment
-  statement: 'These State laws are not assigned to any class: their own text does not decide one class
-    under the catalog rule. Pending CTO ruling; no profile carries them.'
-  unassigned_laws:
-  - STATE-AMBIGUITY-001
-  - STATE-ATOMIC-001
-  - STATE-BIRTH-001
-  - STATE-ERASE-001
-  - STATE-JOURNAL-001
-  - STATE-PROVIDER-001
-  - STATE-RECOVERY-001
-  - STATE-RETENTION-002
-  - STATE-SCHEMA-001
-  - STATE-TENANT-001
 - id: U-AS-RUNTIME-2
   kind: class_assignment
   statement: The archetype requirements below are not assigned to any conformance class by governing semantics;
