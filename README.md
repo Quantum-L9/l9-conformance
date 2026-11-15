@@ -29,7 +29,7 @@ Archetype `l9.node-archetype/authoritative-state@1` requires conformance classes
 | `l9.fixture-profile/authoritative-state-runtime@1` | `runtime` | candidate |
 | `l9.fixture-profile/authoritative-state-adapter@1` | `adapter` | candidate |
 
-Each profile's membership is one normative fixture witnessing that the archetype requires the class. Governing law does not say what each class obliges, which archetype requirements belong to which class, or which product-declared fixture sets exist; each profile records these as `unresolved` entries instead of inventing them. Digests are in `catalog/INDEX.yaml` and `SHA256SUMS`.
+Each profile's membership is one normative fixture witnessing that the archetype requires the class. Each profile's `obligations` are the State laws (by `law_ref`, from the State fixture IR `law_index`, source pinned in `obligation_source`) that the class imposes, assigned by the single rule in `catalog/INDEX.yaml` `authoritative_state_classification` (l9-conformance owns profile resolution). A law whose own statement does not decide one class is carried by no profile and listed as `law_class_assignment` in every profile. Assignment of the archetype's own requirements to classes and the product-declared per-class fixture sets remain `unresolved` entries. Digests are in `catalog/INDEX.yaml` and `SHA256SUMS`.
 
 ```bash
 python3 scripts/check_catalog.py                       # integrity

@@ -52,14 +52,51 @@ def test_catalog_lists_four_authoritative_state_profiles() -> None:
     assert entries["l9.fixture-profile/core@1"]["status"] == "published"
 
 
+AS_CLASSES = ("core", "capability", "runtime", "adapter")
+
+
+def _as_profile(cls: str) -> dict[str, Any]:
+    return yaml.safe_load(
+        (ROOT / "catalog" / f"fixture-profile-authoritative-state-{cls}-1.yaml").read_text()
+    )
+
+
 def test_profiles_record_unknowns_not_law() -> None:
-    for cls in ("core", "capability", "runtime", "adapter"):
-        profile: dict[str, Any] = yaml.safe_load(
-            (ROOT / "catalog" / f"fixture-profile-authoritative-state-{cls}-1.yaml").read_text()
-        )
+    for cls in AS_CLASSES:
+        profile = _as_profile(cls)
         kinds = {u["kind"] for u in profile["unresolved"]}
-        assert kinds == {"obligation_content", "class_assignment", "product_fixture_sets"}
+        assert "obligation_content" not in kinds
+        assert {"class_assignment", "product_fixture_sets"} <= kinds
         assert profile["publication"]["admitted"] is False
+
+
+def test_classification_rule_stated_once_in_index() -> None:
+    index: dict[str, Any] = yaml.safe_load((ROOT / "catalog" / "INDEX.yaml").read_text())
+    assert index["authoritative_state_classification"]["owner"] == "l9-conformance"
+    for cls in AS_CLASSES:
+        ref = _as_profile(cls)["classification_rule_ref"]
+        assert ref == "catalog/INDEX.yaml#authoritative_state_classification"
+
+
+def test_every_state_law_is_carried_by_exactly_one_profile_or_unresolved_everywhere() -> None:
+    carried: dict[str, str] = {}
+    unassigned: list[frozenset[str]] = []
+    sources: set[str] = set()
+    for cls in AS_CLASSES:
+        profile = _as_profile(cls)
+        sources.add(yaml.safe_dump(profile["obligation_source"], sort_keys=True))
+        for ob in profile["obligations"]:
+            assert ob["law_ref"] not in carried, f"{ob['law_ref']} in {carried.get(ob['law_ref'])}"
+            assert ob["id"] == f"O-AS-{cls.upper()}-{ob['law_ref']}"
+            carried[ob["law_ref"]] = cls
+        pending = [u for u in profile["unresolved"] if u["kind"] == "law_class_assignment"]
+        unassigned.append(frozenset(pending[0]["unassigned_laws"]) if pending else frozenset())
+    # One source binding for all four profiles, and the same unassigned set in each.
+    assert len(sources) == 1
+    assert len(set(unassigned)) == 1
+    assert not (unassigned[0] & set(carried))
+    # Every class carries at least one law witness.
+    assert set(carried.values()) == set(AS_CLASSES)
 
 
 def test_tampered_profile_bytes_fail(copy_root: Path) -> None:
